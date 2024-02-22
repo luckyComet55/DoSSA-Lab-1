@@ -22,6 +22,17 @@
 #include "IEcoInterfaceBus1MemExt.h"
 #include "CEcoLab1.h"
 
+
+typedef struct {
+    size_t size;
+    bool_t direction_flag;
+} sorted_sub_array_return_pair_t;
+
+typedef struct {
+    void* segment_ptr;
+    size_t segment_size;
+} start_size_stack_elem_t;
+
 /*
  *
  * <сводка>
@@ -120,6 +131,249 @@ uint32_t ECOCALLMETHOD CEcoLab1_Release(/* in */ struct IEcoLab1* me) {
  * </описание>
  *
  */
+
+
+
+/*
+    Вычисляет служебное значение min_run
+*/
+int16_t get_min_run(size_t n) {
+    int16_t r = 0;
+    while (n >= 64) {
+        r |= n & 1;
+        n >>= 1;
+    }
+    return n + r;
+}
+
+/*
+    Свапает заданное число байт
+*/
+void swap_bytes(
+    char* elem1,
+    char* elem2,
+    size_t type_size
+) {
+    size_t i = 0;
+    char* tmp;
+    for (; i < type_size; ++i) {
+        tmp = elem1[i];
+        elem1[i] = elem2[i];
+        elem2[i] = tmp;
+    }
+}
+
+/*
+    Копирует заданное число байт
+*/
+void copy_bytes(
+    char* src,
+    char* dst,
+    size_t type_size
+) {
+    size_t i = 0;
+    for (; i < type_size; ++i) {
+        src[i] = dst[i];
+    }
+}
+
+/*
+    Разворачивает отсортированный
+    подмассив (применяется в том случае,
+    если найденный подмассив отсортирован
+     в порядке невозрастания)
+*/
+void reverse_sorted_array(
+    void* data,
+    size_t elem_count,
+    size_t elem_size
+) {
+    size_t i = 0;
+    size_t j = elem_count - 1;
+
+    if (elem_count < 2) {
+        return;
+    }
+
+    for (; i < elem_count / 2; ++i, --j) {
+        swap_bytes(
+            (char*) data + i * elem_size,
+            (char*) data + j * elem_size,
+            elem_size
+        );
+    }
+}
+
+/*
+    Возвращает размер найденного
+    отсортированного подмассива,
+    указатель data становится на его начало.
+*/
+sorted_sub_array_return_pair_t get_sorted_sub_array(
+    void* data,
+    size_t elem_count,
+    size_t start_ptr,
+    size_t elem_size,
+    int (__cdecl *comp)(const void*, const void*)
+) {
+    size_t i = start_ptr;
+    int cmp_prev = 0;
+    int cmp_cur;
+    size_t sub_sorted_size = 2;
+    sorted_sub_array_return_pair_t res = {0, TRUE};
+
+    do {
+        cmp_cur = comp((char*)data + i * elem_size, (char*)data + (i + 1) * elem_size);
+        cmp_prev = cmp_cur;
+        i++;
+    } while (cmp_prev != 0 && elem_count > i + 1);
+    
+    for (; i < elem_count - 1; ++i) {
+        cmp_cur = comp((char*)data + i * elem_size, (char*)data + (i + 1) * elem_size);
+        if (cmp_cur == 0 || cmp_cur == cmp_prev) {
+            sub_sorted_size++;
+        } else {
+            break;
+        }
+    }
+    res.size = sub_sorted_size;
+    res.direction_flag = cmp_prev == 1;
+    return res;
+}
+
+/*
+    Проводит сортировку вставками.
+    Используется для подмассивов размером
+    min_run или больше. Зачем используется?
+    Алгоритм предполагает, что поступающие
+    на вход подмассивы либо очень малы
+    (min_run выбирается из диапазона [32, 65)),
+    либо частично отсортированны. В общем случае,
+    подмассивы размера min_run буду частично отсортированны,
+    подмассивы больших размеров будут отсортированны полностью.
+*/
+void insertion_sort(
+    void* data,
+    size_t elem_count,
+    size_t elem_size,
+    int (__cdecl *comp)(const void *, const void*)
+) {
+    size_t i = 0;
+    size_t prev;
+    size_t j;
+    
+    for (; i < elem_count - 1; ++i) {
+        j = i + 1;
+        prev = i;
+        while (
+            comp((char*)data + prev * elem_size, (char*)data + j * elem_size) > 0
+            &&
+            /* Это условие никогда не будет невыполнено, поскольку тип данных такой,
+                но я решил добавить его для явности, проверка всё равно осуществляется
+                в блоке 
+            */ prev >= 0
+        ) {
+            swap_bytes(
+                (char*)data + prev * elem_size,
+                (char*)data + j * elem_size,
+                elem_size
+            );
+            j--;
+            if (prev == 0) {
+                break;
+            }
+            prev--;
+        }
+    }
+}
+
+/*
+    Сортировка слиянием двух
+    отсортированных подмассивов.
+    Необходимо небольшое объяснение
+    касательно передаваемых аргументов:
+    в принципе, нужды передавать
+    указатель data нет - это,
+    по сути, и есть left_sub_arr.
+    Однако, семантически left_sub_arr
+    является только левым подмассивом и ограничен
+    размером left_size. В ходе функции
+    есть необходимость последовательно копировать
+    элементы из массивов buffer (копия left_sub_arr) и
+    right_sub_arr в общий массив данных. Это можно
+    сделать с использованием одного указателя
+    left_sub_arr, однако при этом указатель выйдет
+    за те рамки, которые были заданы переменной left_size.
+    А это просто выглядит плохо, будто мы
+    выходми в память, которая нам не
+    принадлежит. По этой причине, просто
+    ради читаемости, решено было дополнительно
+    передавать указатель data. Конечно,
+    тогда копирование из left_sub_arr в buffer
+    выглядит лишним, но, по-моему, это гораздо лучше,
+    чем что-то похожее на предрекающее SEGFAULT.
+*/
+void merge_sorted_subarrays(
+    void* data,
+    void* left_sub_arr,
+    size_t left_size,
+    void* right_sub_arr,
+    size_t right_size,
+    size_t elem_size,
+    int (__cdecl *comp)(const void *, const void*),
+    void* buffer
+) {
+    size_t left_ptr = 0, right_ptr = 0, buffer_ptr = 0, data_ptr = 0;
+    size_t buffer_size = left_size;
+    char* tmp_src_ptr;
+    void* alive_src;
+    size_t alive_src_ptr, alive_src_size;
+    
+    for (; left_ptr < left_size; ++left_ptr) {
+        copy_bytes(
+            (char*) left_sub_arr + left_ptr * elem_size,
+            (char*) buffer + left_ptr * elem_size,
+            elem_size
+        );
+    }
+
+    for (; buffer_ptr < left_size && right_ptr < right_size;) {
+        if (comp(
+            (char*)buffer + buffer_ptr * elem_size, (char*)right_sub_arr + right_ptr * elem_size) <= 0
+        ) {
+            tmp_src_ptr = (char*)buffer + buffer_ptr * elem_size;
+            buffer_ptr++;
+        } else {
+            tmp_src_ptr = (char*)right_sub_arr + right_ptr * elem_size;
+            right_ptr++;
+        }
+        copy_bytes(
+            tmp_src_ptr,
+            (char*)data + data_ptr * elem_size,
+            elem_size
+        );
+        data_ptr++;
+    }
+
+    if (buffer_ptr == left_size - 1) {
+        alive_src = right_sub_arr;
+        alive_src_ptr = right_ptr;
+        alive_src_size = right_size;
+    } else {
+        alive_src = buffer;
+        alive_src_ptr = buffer_ptr;
+        alive_src_size = left_size;
+    }
+
+    for (; alive_src_ptr < alive_src_size; ++alive_src_ptr, ++data_ptr) {
+        copy_bytes(
+            (char*)alive_src + alive_src_ptr * elem_size,
+            (char*)data + data_ptr * elem_size,
+            elem_size
+        );
+    }
+}
+
 int16_t ECOCALLMETHOD CEcoLab1_qsort(
     struct IEcoLab1* me,
     void* pData,
@@ -127,6 +381,13 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
     size_t elem_size,
     int (__cdecl *comp)(const void *, const void*)
 ) {
+    int16_t min_run = get_min_run(elem_count);
+    size_t sub_sorted_size = 0;
+
+    if (elem_count < 2) {
+        return 0;
+    }
+
     return 0;
 }
 
