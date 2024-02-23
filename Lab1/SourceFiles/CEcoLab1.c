@@ -23,6 +23,37 @@
 #include "CEcoLab1.h"
 
 
+/*
+    Свапает заданное число байт
+*/
+void swap_bytes(
+    char* elem1,
+    char* elem2,
+    size_t type_size
+) {
+    size_t i = 0;
+    char* tmp;
+    for (; i < type_size; ++i) {
+        tmp = elem1[i];
+        elem1[i] = elem2[i];
+        elem2[i] = tmp;
+    }
+}
+
+/*
+    Копирует заданное число байт
+*/
+void copy_bytes(
+    char* src,
+    char* dst,
+    size_t type_size
+) {
+    size_t i = 0;
+    for (; i < type_size; ++i) {
+        src[i] = dst[i];
+    }
+}
+
 typedef struct {
     size_t size;
     bool_t direction_flag;
@@ -32,6 +63,115 @@ typedef struct {
     void* segment_ptr;
     size_t segment_size;
 } start_size_stack_elem_t;
+
+typedef struct {
+    void* buffer;
+    size_t first_idx;
+    size_t last_idx;
+    size_t size;
+    size_t capacity;
+    size_t elem_size;
+} circle_buffer_t, *circle_buffer_ptr;
+
+int16_t push_back(
+    void* new_elem,
+    circle_buffer_ptr stack
+) {
+    size_t new_elem_ptr = ((stack->last_idx + 1) % stack->capacity) * stack->elem_size;
+
+    if (stack->size == stack->capacity) {
+        return -1;
+    }
+
+    copy_bytes(
+        (char*) new_elem,
+        (char*) stack->buffer + new_elem_ptr,
+        stack->elem_size
+    );
+    stack->size++;
+    stack->last_idx = (stack->last_idx + 1) % stack->capacity;
+
+    return 0;
+}
+
+int16_t push_front(
+    void* new_elem,
+    circle_buffer_ptr stack
+) {
+    size_t new_elem_ptr;
+    if (stack->first_idx == 0) {
+        stack->first_idx = stack->capacity - 1;
+    } else {
+        stack->first_idx--;
+    }
+
+    new_elem_ptr = stack->first_idx * stack->elem_size;
+
+    if (stack->size == stack->capacity) {
+        return -1;
+    }
+
+    copy_bytes(
+        (char*) new_elem,
+        (char*) stack->buffer + new_elem_ptr,
+        stack->elem_size
+    );
+    stack->size++;
+
+    return 0;
+}
+
+void* back(circle_buffer_ptr stack) {
+    void* data_ptr;
+    size_t stack_top_ptr = (stack->last_idx) * stack->elem_size;
+
+    if (stack->size == 0) {
+        return NULL;
+    }
+
+    copy_bytes(
+        (char*) stack->buffer + stack_top_ptr,
+        (char*) data_ptr,
+        stack->elem_size
+    );
+
+    return data_ptr;
+}
+
+void* front(circle_buffer_ptr stack) {
+    void* data_ptr;
+    size_t stack_top_ptr = (stack->first_idx) * stack->elem_size;
+
+    if (stack->size == 0) {
+        return NULL;
+    }
+
+    copy_bytes(
+        (char*) stack->buffer + stack_top_ptr,
+        (char*) data_ptr,
+        stack->elem_size
+    );
+
+    return data_ptr;
+}
+
+void* pop_back(circle_buffer_ptr stack) {
+    void* data_ptr = back(stack);
+    stack->size--;
+    if (stack->last_idx == 0) {
+        stack->last_idx = stack->capacity - 1;
+    } else {
+        stack->last_idx--;
+    }
+    return data_ptr;
+}
+
+void* pop_front(circle_buffer_ptr stack) {
+    void* data_ptr = front(stack);
+    stack->size--;
+    stack->first_idx = (stack->first_idx + 1) % stack->capacity;
+    return data_ptr;
+}
 
 /*
  *
@@ -147,37 +287,6 @@ int16_t get_min_run(size_t n) {
 }
 
 /*
-    Свапает заданное число байт
-*/
-void swap_bytes(
-    char* elem1,
-    char* elem2,
-    size_t type_size
-) {
-    size_t i = 0;
-    char* tmp;
-    for (; i < type_size; ++i) {
-        tmp = elem1[i];
-        elem1[i] = elem2[i];
-        elem2[i] = tmp;
-    }
-}
-
-/*
-    Копирует заданное число байт
-*/
-void copy_bytes(
-    char* src,
-    char* dst,
-    size_t type_size
-) {
-    size_t i = 0;
-    for (; i < type_size; ++i) {
-        src[i] = dst[i];
-    }
-}
-
-/*
     Разворачивает отсортированный
     подмассив (применяется в том случае,
     если найденный подмассив отсортирован
@@ -226,7 +335,7 @@ sorted_sub_array_return_pair_t get_sorted_sub_array(
         cmp_cur = comp((char*)data + i * elem_size, (char*)data + (i + 1) * elem_size);
         cmp_prev = cmp_cur;
         i++;
-    } while (cmp_prev != 0 && elem_count > i + 1);
+    } while (cmp_prev == 0 && elem_count > i + 1);
     
     for (; i < elem_count - 1; ++i) {
         cmp_cur = comp((char*)data + i * elem_size, (char*)data + (i + 1) * elem_size);
@@ -374,6 +483,98 @@ void merge_sorted_subarrays(
     }
 }
 
+int16_t timsort_actual(
+    void* data,
+    size_t elem_count,
+    size_t elem_size,
+    int (__cdecl *comp)(const void *, const void*),
+    void* buffer_copy,
+    size_t buffer_stack_size_bytes
+) {
+    int16_t min_run = get_min_run(elem_count);
+    sorted_sub_array_return_pair_t sub_arr_data;
+    size_t data_ptr = 0, data_bytes = elem_count * elem_size, stack_idx = 0;
+    size_t sub_arr_size = min_run, last_arr_size = elem_count % min_run == 0 ? min_run : elem_count % min_run;
+    size_t arr_idx = 0;
+    size_t arrs_left = elem_count / min_run + (elem_count % min_run != 0);
+
+    if (elem_count < 2) {
+        return 0;
+    }
+
+    if (elem_count <= 64) {
+        insertion_sort(
+            data,
+            elem_count,
+            elem_size,
+            comp
+        );
+        return 0;
+    }
+
+    while (data_ptr < data_bytes) {
+        sub_arr_data = get_sorted_sub_array(
+            data,
+            elem_count,
+            data_ptr,
+            elem_size,
+            comp
+        );
+        if (sub_arr_data.direction_flag == 0) {
+            reverse_sorted_array(
+                (char*)data + data_ptr,
+                sub_arr_data.size,
+                elem_size
+            );
+        }
+        if (sub_arr_data.size < min_run && min_run * elem_size + data_ptr < data_bytes) {
+            sub_arr_data.size = min_run;
+        }
+
+        insertion_sort(
+            (char*)data + data_ptr,
+            sub_arr_data.size,
+            elem_size,
+            comp
+        );
+
+        data_ptr += (sub_arr_data.size * elem_size);
+    }
+
+    while (arrs_left > 1) {
+        for (arr_idx = 0; arr_idx < arrs_left - 2; arr_idx += 2) {
+            merge_sorted_subarrays(
+                data,
+                (char*)data + arr_idx * sub_arr_size * elem_size,
+                sub_arr_size,
+                (char*)data + (arr_idx + 1) * sub_arr_size * elem_size,
+                sub_arr_size,
+                elem_size,
+                comp,
+                buffer_copy
+            );
+        }
+
+        if (arrs_left % 2 == 0) {
+            merge_sorted_subarrays(
+                data,
+                (char*)data + (elem_count - last_arr_size - min_run) * elem_size,
+                sub_arr_size,
+                (char*)data + (elem_count - last_arr_size) * elem_size,
+                last_arr_size,
+                elem_size,
+                comp,
+                buffer_copy
+            );
+            last_arr_size += sub_arr_size;
+        }
+        arrs_left = arrs_left / 2 + (arrs_left % 2 != 0);
+        sub_arr_size *= 2;
+    }
+    
+    return 0;
+}
+
 int16_t ECOCALLMETHOD CEcoLab1_qsort(
     struct IEcoLab1* me,
     void* pData,
@@ -381,12 +582,7 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
     size_t elem_size,
     int (__cdecl *comp)(const void *, const void*)
 ) {
-    int16_t min_run = get_min_run(elem_count);
-    size_t sub_sorted_size = 0;
-
-    if (elem_count < 2) {
-        return 0;
-    }
+    
 
     return 0;
 }
