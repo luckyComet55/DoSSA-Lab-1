@@ -375,8 +375,7 @@ int16_t timsort_actual(
     size_t elem_count,
     size_t elem_size,
     int (__cdecl *comp)(const void *, const void*),
-    void* buffer_copy,
-    size_t buffer_stack_size_bytes
+    void* buffer_copy
 ) {
     int16_t min_run = get_min_run(elem_count);
     sorted_sub_array_return_pair_t sub_arr_data;
@@ -469,9 +468,27 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
     size_t elem_size,
     int (__cdecl *comp)(const void *, const void*)
 ) {
-    
+    CEcoLab1* pCMe = (CEcoLab1*) me;
+    void* buffer_copy = 0;
+    int16_t err_code = 0;
 
-    return 0;
+    if (me == 0 || pData == 0 || comp == 0) {
+        return -1;
+    }
+
+    buffer_copy = pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, elem_count * elem_size);
+
+    err_code = timsort_actual(
+        pData,
+        elem_count,
+        elem_size,
+        comp,
+        buffer_copy
+    );
+
+    pCMe->m_pIMem->pVTbl->Free(pCMe, buffer_copy);
+
+    return err_code;
 }
 
 
