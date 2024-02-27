@@ -51,7 +51,7 @@ void copy_bytes(
 ) {
     size_t i = 0;
     for (; i < type_size; ++i) {
-        src[i] = dst[i];
+        dst[i] = src[i];
     }
 }
 
@@ -321,51 +321,49 @@ void merge_sorted_subarrays(
     int (__cdecl *comp)(const void *, const void*),
     void* buffer
 ) {
-    size_t left_ptr, right_ptr, buffer_ptr, data_ptr = 0;
-    size_t buffer_size = left_size;
+    size_t left_ptr, right_ptr, buffer_ptr, data_ptr;
+    size_t buffer_size = left_size + right_size;
     char* tmp_src_ptr;
-    void* alive_src;
-    size_t alive_src_ptr, alive_src_size;
-    
-    for (left_ptr = 0; left_ptr < left_size; ++left_ptr) {
-        copy_bytes(
-            (char*) left_sub_arr + left_ptr * elem_size,
-            (char*) buffer + left_ptr * elem_size,
-            elem_size
-        );
-    }
 
-    for (buffer_ptr = 0, right_ptr = 0; buffer_ptr < buffer_size && right_ptr < right_size;) {
+    for (left_ptr = 0, right_ptr = 0, buffer_ptr = 0; left_ptr < left_size && right_ptr < right_size; ++buffer_ptr) {
         if (comp(
-            (char*)buffer + buffer_ptr * elem_size, (char*)right_sub_arr + right_ptr * elem_size) <= 0
+            (char*)left_sub_arr + left_ptr * elem_size, (char*)right_sub_arr + right_ptr * elem_size) <= 0
         ) {
-            tmp_src_ptr = (char*)buffer + buffer_ptr * elem_size;
-            buffer_ptr++;
+            copy_bytes(
+                (char*)left_sub_arr + left_ptr * elem_size,
+                (char*)buffer + buffer_ptr * elem_size,
+                elem_size
+            );
+            left_ptr++;
         } else {
-            tmp_src_ptr = (char*)right_sub_arr + right_ptr * elem_size;
+            copy_bytes(
+                (char*)right_sub_arr + right_ptr * elem_size,
+                (char*)buffer + buffer_ptr * elem_size,
+                elem_size
+            );
             right_ptr++;
         }
+    }
+
+    for(; left_ptr < left_size; ++left_ptr, ++buffer_ptr) {
         copy_bytes(
-            tmp_src_ptr,
-            (char*)data + data_ptr * elem_size,
+            (char*)left_sub_arr + left_ptr * elem_size,
+            (char*)buffer + buffer_ptr * elem_size,
             elem_size
         );
-        data_ptr++;
     }
 
-    if (buffer_ptr == left_size - 1) {
-        alive_src = right_sub_arr;
-        alive_src_ptr = right_ptr;
-        alive_src_size = right_size;
-    } else {
-        alive_src = buffer;
-        alive_src_ptr = buffer_ptr;
-        alive_src_size = left_size;
-    }
-
-    for (; alive_src_ptr < alive_src_size; ++alive_src_ptr, ++data_ptr) {
+    for (; right_ptr < right_size; ++right_ptr, ++buffer_ptr) {
         copy_bytes(
-            (char*)alive_src + alive_src_ptr * elem_size,
+            (char*)right_sub_arr + right_ptr * elem_size,
+            (char*)buffer + buffer_ptr * elem_size,
+            elem_size
+        );
+    }
+
+    for (buffer_ptr = 0, data_ptr = 0; buffer_ptr < buffer_size; ++buffer_ptr, ++data_ptr) {
+        copy_bytes(
+            (char*)buffer + buffer_ptr * elem_size,
             (char*)data + data_ptr * elem_size,
             elem_size
         );
@@ -448,7 +446,7 @@ int16_t timsort_actual(
         if (arrs_left % 2 == 0) {
             merge_sorted_subarrays(
                 data,
-                (char*)data + (elem_count - last_arr_size - min_run) * elem_size,
+                (char*)data + (elem_count - last_arr_size - sub_arr_size) * elem_size,
                 sub_arr_size,
                 (char*)data + (elem_count - last_arr_size) * elem_size,
                 last_arr_size,
@@ -481,7 +479,6 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
     }
 
     buffer_copy = pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, elem_count * elem_size);
-    // buffer_copy = malloc(elem_count * elem_size);
     if (buffer_copy == 0) {
         printf("\n\nNo data was allocated\nTerminating\n\n");
     }
@@ -494,7 +491,6 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
         buffer_copy
     );
 
-    // free(buffer_copy);
     pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, buffer_copy);
 
     return err_code;

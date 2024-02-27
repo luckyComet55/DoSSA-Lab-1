@@ -71,6 +71,11 @@ void* generate_int_full_random(IEcoMemoryAllocator1 *pIMem, size_t size) {
 
 void print_int_arr(int* arr, size_t arr_size) {
     size_t i;
+
+    if (arr_size > 500) {
+        return;
+    }
+
     printf("Array of size %ld:\n", arr_size);
     for (i = 0; i < arr_size; ++i) {
         printf("%d ", arr[i]);
@@ -130,13 +135,13 @@ test_result run_int_tests(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, size_t si
     printf("generating arr of size %d\n\n", size);
     data_custom = generate_int_arr(pIMem, size, is_full_random);
     data_internal = pIMem->pVTbl->Alloc(pIMem, size * sizeof(int));
-    copy_int_arr(data_custom, data_internal, size);
-
-
     if (data_custom == 0 || data_internal == 0) {
         printf("\n\nNo data was allocated\nTerminating\n\n");
-        return res;
+        exit(-1);
     }
+    copy_int_arr(data_custom, data_internal, size);
+    
+    printf("\n\nInput int array:\n");
     print_int_arr((int*)data_custom, size);
 
     printf("sorting lab qsort\n\n");
@@ -150,7 +155,6 @@ test_result run_int_tests(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, size_t si
 
     printf("wiping arr of size %d\n\n", size);
     pIMem->pVTbl->Free(pIMem, data_custom);
-    // free(data);
 
 
     printf("sorting std qsort\n\n");
@@ -164,7 +168,6 @@ test_result run_int_tests(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, size_t si
 
     printf("wiping arr of size %d\n\n", size);
     pIMem->pVTbl->Free(pIMem, data_internal);
-    // free(data);
 
     res.arr_size = size;
     res.arr_type = is_full_random;
@@ -207,24 +210,24 @@ void print_res_to_terminal(test_result *res, size_t res_size) {
 }
 
 int16_t test_toplevel(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, FILE *out_file) {
-    size_t sizes[5] = {101, 30, 560, 9871, 15002/*, 61234, 120000 */};
-    test_result results[5 + 3];
+    size_t sizes[6] = {30, 101, 327, 560, 9871, 15002/*, 61234, 120000 */};
+    test_result results[6 + 3];
     size_t i;
 
     printf("start test\n\n");
     
-    for (i = 0; i < 5; ++i) {
+    for (i = 0; i < 6; ++i) {
         printf("test #%d\n", i + 1);
         results[i] = run_int_tests(this, pIMem, sizes[i], TRUE);
     }
-    for (i = 5 - 3; i < 5; ++i) {
+    for (i = 5 - 3; i < 6; ++i) {
         printf("test #%d\n", i + 1 + 3);
         results[i + 3] = run_int_tests(this, pIMem, sizes[i], FALSE);
     }
 
     printf("\nend tests\nprint result data\n\n");
 
-    print_res_to_terminal(results, 5 + 3);
+    print_res_to_terminal(results, 9);
 
     printf("end print data\n\n");
 
