@@ -432,7 +432,7 @@ int16_t timsort_actual(
     while (arrs_left > 1) {
         for (arr_idx = 0; arr_idx < arrs_left - 2; arr_idx += 2) {
             merge_sorted_subarrays(
-                data,
+                (char*)data + arr_idx * sub_arr_size * elem_size,
                 (char*)data + arr_idx * sub_arr_size * elem_size,
                 sub_arr_size,
                 (char*)data + (arr_idx + 1) * sub_arr_size * elem_size,
@@ -445,7 +445,7 @@ int16_t timsort_actual(
 
         if (arrs_left % 2 == 0) {
             merge_sorted_subarrays(
-                data,
+                (char*)data + (elem_count - last_arr_size - sub_arr_size) * elem_size,
                 (char*)data + (elem_count - last_arr_size - sub_arr_size) * elem_size,
                 sub_arr_size,
                 (char*)data + (elem_count - last_arr_size) * elem_size,
