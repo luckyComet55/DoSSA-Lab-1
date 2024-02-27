@@ -378,7 +378,7 @@ int16_t timsort_actual(
     void* buffer_copy
 ) {
     int16_t min_run = get_min_run(elem_count);
-    sorted_sub_array_return_pair_t sub_arr_data;
+    size_t sub_sorted_arr_size = 0;
     size_t data_ptr = 0, data_bytes = elem_count * elem_size, stack_idx = 0;
     size_t sub_arr_size = min_run, last_arr_size = elem_count % min_run == 0 ? min_run : elem_count % min_run;
     size_t arr_idx = 0;
@@ -399,34 +399,20 @@ int16_t timsort_actual(
     }
 
     while (data_ptr < data_bytes) {
-        sub_arr_data = get_sorted_sub_array(
-            data,
-            elem_count,
-            data_ptr,
-            elem_size,
-            comp
-        );
-        if (sub_arr_data.direction_flag == 0) {
-            reverse_sorted_array(
-                (char*)data + data_ptr,
-                sub_arr_data.size,
-                elem_size
-            );
-        }
-        if (sub_arr_data.size < min_run && min_run * elem_size + data_ptr < data_bytes) {
-            sub_arr_data.size = min_run;
-        } else if (sub_arr_data.size < min_run && min_run * elem_size + data_ptr >= data_bytes) {
-            sub_arr_data.size = (data_bytes - data_ptr) / elem_size;
+        if (min_run * elem_size + data_ptr < data_bytes) {
+            sub_sorted_arr_size = min_run;
+        } else {
+            sub_sorted_arr_size = (data_bytes - data_ptr) / elem_size;
         }
 
         insertion_sort(
             (char*)data + data_ptr,
-            sub_arr_data.size,
+            sub_sorted_arr_size,
             elem_size,
             comp
         );
 
-        data_ptr += (sub_arr_data.size * elem_size);
+        data_ptr += (sub_sorted_arr_size * elem_size);
     }
 
     while (arrs_left > 1) {

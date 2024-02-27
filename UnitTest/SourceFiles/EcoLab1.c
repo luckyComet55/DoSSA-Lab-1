@@ -52,6 +52,33 @@ void copy_int_arr(int* src, int* dst, size_t size) {
     }
 }
 
+void print_int_arr(int* arr, size_t arr_size) {
+    size_t i;
+
+    if (arr_size > 1000) {
+        return;
+    }
+
+    printf("Array of size %ld:\n", arr_size);
+    for (i = 0; i < arr_size; ++i) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+bool_t assert_int_arrs_equal(int* l, int* r, size_t size) {
+    size_t i;
+    for (i = 0; i < size; ++i) {
+        if (l[i] != r[i]) {
+            printf("\nASSERTION FAILED:\n%d != %d\nARRAY INDEX %ld\nPRINTING OUT ARRAYS:\n", l[i], r[i], i);
+            print_int_arr(l, size);
+            print_int_arr(r, size);
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
 void* generate_int_full_random(IEcoMemoryAllocator1 *pIMem, size_t size) {
     size_t i = 0;
     int* arr_ptr = 0;
@@ -67,20 +94,6 @@ void* generate_int_full_random(IEcoMemoryAllocator1 *pIMem, size_t size) {
     }
 
     return (void*)arr_ptr;
-}
-
-void print_int_arr(int* arr, size_t arr_size) {
-    size_t i;
-
-    if (arr_size > 500) {
-        return;
-    }
-
-    printf("Array of size %ld:\n", arr_size);
-    for (i = 0; i < arr_size; ++i) {
-        printf("%d ", arr[i]);
-    }
-    printf("\n");
 }
 
 void* generate_int_sequential(IEcoMemoryAllocator1 *pIMem, size_t size) {
@@ -132,7 +145,7 @@ test_result run_int_tests(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, size_t si
     void* data_custom = 0;
     void* data_internal = 0;
 
-    printf("generating arr of size %d\n\n", size);
+    printf("generating arr of size %ld (%ld bytes)\n\n", size, size * sizeof(int));
     data_custom = generate_int_arr(pIMem, size, is_full_random);
     data_internal = pIMem->pVTbl->Alloc(pIMem, size * sizeof(int));
     if (data_custom == 0 || data_internal == 0) {
@@ -141,33 +154,25 @@ test_result run_int_tests(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, size_t si
     }
     copy_int_arr(data_custom, data_internal, size);
     
-    printf("\n\nInput int array:\n");
-    print_int_arr((int*)data_custom, size);
-
     printf("sorting lab qsort\n\n");
     before = clock();
     this->pVTbl->qsort(this, data_custom, size, sizeof(int), comp_int);
     after = clock();
-    res_sec_custom = (after - before) / CLOCKS_PER_SEC;
-
-    printf("Sorted:\n");
-    print_int_arr((int*)data_custom, size);
-
-    printf("wiping arr of size %d\n\n", size);
-    pIMem->pVTbl->Free(pIMem, data_custom);
-
+    res_sec_custom = (double)(after - before) / CLOCKS_PER_SEC;
+    printf("\n\nBefore: %ld\nAfter: %ld\n\n", before, after);
 
     printf("sorting std qsort\n\n");
     before = clock();
     qsort(data_internal, size, sizeof(int), comp_int);
     after = clock();
-    res_sec_internal = (after - before) / CLOCKS_PER_SEC;
+    res_sec_internal = (double)(after - before) / CLOCKS_PER_SEC;
 
-    printf("Sorted:\n");
-    print_int_arr((int*)data_internal, size);
+    printf("\nAssert both sorting returned same result\n");
+    assert(assert_int_arrs_equal(data_custom, data_internal, size));
 
-    printf("wiping arr of size %d\n\n", size);
+    printf("wiping arrays data (%d bytes)\n\n", size * sizeof(int));
     pIMem->pVTbl->Free(pIMem, data_internal);
+    pIMem->pVTbl->Free(pIMem, data_custom);
 
     res.arr_size = size;
     res.arr_type = is_full_random;
@@ -179,17 +184,17 @@ test_result run_int_tests(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, size_t si
 
 void print_result_terminal(test_result res) {
     if (res.arr_type == TRUE) {
-        printf("%d,%lf,%lf,RAND\n", res.arr_size, res.qsort_internal_res, res.qsort_internal_res);
+        printf("%d,%lf,%lf,RAND\n", res.arr_size, res.qsort_internal_res, res.qsort_custom_res);
     } else {
-        printf("%d,%lf,%lf,SEQ\n", res.arr_size, res.qsort_internal_res, res.qsort_internal_res);
+        printf("%d,%lf,%lf,SEQ\n", res.arr_size, res.qsort_internal_res, res.qsort_custom_res);
     }
 }
 
 void print_result(FILE *out_file, test_result res) {
     if (res.arr_type == TRUE) {
-        fprintf(out_file, "%d,%lf,%lf,RAND\n", res.arr_size, res.qsort_internal_res, res.qsort_internal_res);
+        fprintf(out_file, "%d,%lf,%lf,RAND\n", res.arr_size, res.qsort_internal_res, res.qsort_custom_res);
     } else {
-        fprintf(out_file, "%d,%lf,%lf,SEQ\n", res.arr_size, res.qsort_internal_res, res.qsort_internal_res);
+        fprintf(out_file, "%d,%lf,%lf,SEQ\n", res.arr_size, res.qsort_internal_res, res.qsort_custom_res);
     }
 }
 
@@ -210,24 +215,24 @@ void print_res_to_terminal(test_result *res, size_t res_size) {
 }
 
 int16_t test_toplevel(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, FILE *out_file) {
-    size_t sizes[6] = {30, 101, 327, 560, 9871, 15002/*, 61234, 120000 */};
-    test_result results[6 + 3];
+    size_t sizes[8] = {9871, 15002, 61234, 120000, 1012322, 327001217, 6494424214};
+    test_result results[8 + 3];
     size_t i;
 
     printf("start test\n\n");
     
-    for (i = 0; i < 6; ++i) {
+    for (i = 0; i < 5; ++i) {
         printf("test #%d\n", i + 1);
         results[i] = run_int_tests(this, pIMem, sizes[i], TRUE);
     }
-    for (i = 5 - 3; i < 6; ++i) {
+    for (i = 5 - 3; i < 5; ++i) {
         printf("test #%d\n", i + 1 + 3);
         results[i + 3] = run_int_tests(this, pIMem, sizes[i], FALSE);
     }
 
     printf("\nend tests\nprint result data\n\n");
 
-    print_res_to_terminal(results, 9);
+    print_res_to_terminal(results, 8);
 
     printf("end print data\n\n");
 
