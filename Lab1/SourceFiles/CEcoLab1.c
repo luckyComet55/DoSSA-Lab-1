@@ -21,6 +21,7 @@
 #include "IEcoInterfaceBus1.h"
 #include "IEcoInterfaceBus1MemExt.h"
 #include "CEcoLab1.h"
+#include <stdlib.h>
 
 
 /*
@@ -32,7 +33,7 @@ void swap_bytes(
     size_t type_size
 ) {
     size_t i = 0;
-    char* tmp;
+    char tmp;
     for (; i < type_size; ++i) {
         tmp = elem1[i];
         elem1[i] = elem2[i];
@@ -212,16 +213,17 @@ sorted_sub_array_return_pair_t get_sorted_sub_array(
     size_t elem_size,
     int (__cdecl *comp)(const void*, const void*)
 ) {
-    size_t i = start_ptr;
+    size_t i = start_ptr / elem_size;
     int cmp_prev = 0;
     int cmp_cur;
-    size_t sub_sorted_size = 2;
-    sorted_sub_array_return_pair_t res = {0, TRUE};
+    size_t sub_sorted_size = 1;
+    sorted_sub_array_return_pair_t res = {sub_sorted_size, TRUE};
 
     do {
         cmp_cur = comp((char*)data + i * elem_size, (char*)data + (i + 1) * elem_size);
         cmp_prev = cmp_cur;
         i++;
+        sub_sorted_size++;
     } while (cmp_prev == 0 && elem_count > i + 1);
     
     for (; i < elem_count - 1; ++i) {
@@ -233,7 +235,7 @@ sorted_sub_array_return_pair_t get_sorted_sub_array(
         }
     }
     res.size = sub_sorted_size;
-    res.direction_flag = cmp_prev == 1;
+    res.direction_flag = cmp_prev != 1;
     return res;
 }
 
@@ -319,13 +321,13 @@ void merge_sorted_subarrays(
     int (__cdecl *comp)(const void *, const void*),
     void* buffer
 ) {
-    size_t left_ptr = 0, right_ptr = 0, buffer_ptr = 0, data_ptr = 0;
+    size_t left_ptr, right_ptr, buffer_ptr, data_ptr = 0;
     size_t buffer_size = left_size;
     char* tmp_src_ptr;
     void* alive_src;
     size_t alive_src_ptr, alive_src_size;
     
-    for (; left_ptr < left_size; ++left_ptr) {
+    for (left_ptr = 0; left_ptr < left_size; ++left_ptr) {
         copy_bytes(
             (char*) left_sub_arr + left_ptr * elem_size,
             (char*) buffer + left_ptr * elem_size,
@@ -333,7 +335,7 @@ void merge_sorted_subarrays(
         );
     }
 
-    for (; buffer_ptr < left_size && right_ptr < right_size;) {
+    for (buffer_ptr = 0, right_ptr = 0; buffer_ptr < buffer_size && right_ptr < right_size;) {
         if (comp(
             (char*)buffer + buffer_ptr * elem_size, (char*)right_sub_arr + right_ptr * elem_size) <= 0
         ) {
@@ -415,6 +417,8 @@ int16_t timsort_actual(
         }
         if (sub_arr_data.size < min_run && min_run * elem_size + data_ptr < data_bytes) {
             sub_arr_data.size = min_run;
+        } else if (sub_arr_data.size < min_run && min_run * elem_size + data_ptr >= data_bytes) {
+            sub_arr_data.size = (data_bytes - data_ptr) / elem_size;
         }
 
         insertion_sort(
@@ -477,6 +481,10 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
     }
 
     buffer_copy = pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, elem_count * elem_size);
+    // buffer_copy = malloc(elem_count * elem_size);
+    if (buffer_copy == 0) {
+        printf("\n\nNo data was allocated\nTerminating\n\n");
+    }
 
     err_code = timsort_actual(
         pData,
@@ -486,7 +494,8 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
         buffer_copy
     );
 
-    pCMe->m_pIMem->pVTbl->Free(pCMe, buffer_copy);
+    // free(buffer_copy);
+    pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, buffer_copy);
 
     return err_code;
 }
