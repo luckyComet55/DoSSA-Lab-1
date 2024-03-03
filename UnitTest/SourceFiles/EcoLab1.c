@@ -86,7 +86,7 @@ void* generate_int_full_random(IEcoMemoryAllocator1 *pIMem, size_t size) {
     // arr_ptr = (int*)malloc(size * sizeof(int));
     if (arr_ptr == 0) {
         printf("\n\nNo data was allocated\nTerminating\n\n");
-        return -13;
+        return NULL;
     }
     
     for (; i < size; ++i) {
@@ -106,7 +106,7 @@ void* generate_int_sequential(IEcoMemoryAllocator1 *pIMem, size_t size) {
     // arr_ptr = malloc(size * sizeof(int));
     if (arr_ptr == 0) {
         printf("\n\nNo data was allocated\nTerminating\n\n");
-        return -13;
+        return NULL;
     }
     
     for (i = 0; i < size; ++i) {
