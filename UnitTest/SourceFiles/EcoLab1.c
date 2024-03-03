@@ -86,7 +86,7 @@ void* generate_int_full_random(IEcoMemoryAllocator1 *pIMem, size_t size) {
     // arr_ptr = (int*)malloc(size * sizeof(int));
     if (arr_ptr == 0) {
         printf("\n\nNo data was allocated\nTerminating\n\n");
-        return 0;
+        return -13;
     }
     
     for (; i < size; ++i) {
@@ -106,7 +106,7 @@ void* generate_int_sequential(IEcoMemoryAllocator1 *pIMem, size_t size) {
     // arr_ptr = malloc(size * sizeof(int));
     if (arr_ptr == 0) {
         printf("\n\nNo data was allocated\nTerminating\n\n");
-        return 0;
+        return -13;
     }
     
     for (i = 0; i < size; ++i) {
@@ -142,6 +142,7 @@ test_result run_int_tests(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, size_t si
     test_result res = {0, 0, 0, 0};
     clock_t before, after;
     double res_sec_custom, res_sec_internal;
+    int16_t err_code = 0;
     void* data_custom = 0;
     void* data_internal = 0;
 
@@ -150,14 +151,20 @@ test_result run_int_tests(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, size_t si
     data_internal = pIMem->pVTbl->Alloc(pIMem, size * sizeof(int));
     if (data_custom == 0 || data_internal == 0) {
         printf("\n\nNo data was allocated\nTerminating\n\n");
-        exit(-1);
+        exit(-13);
     }
     copy_int_arr(data_custom, data_internal, size);
     
     printf("sorting lab qsort\n\n");
     before = clock();
-    this->pVTbl->qsort(this, data_custom, size, sizeof(int), comp_int);
+    err_code = this->pVTbl->qsort(this, data_custom, size, sizeof(int), comp_int);
     after = clock();
+
+    if (err_code != 0) {
+        printf("\n\nRuntime error occured: %d\n\n", err_code);
+        exit(err_code);
+    }
+
     res_sec_custom = (double)(after - before) / CLOCKS_PER_SEC;
     printf("\n\nBefore: %ld\nAfter: %ld\n\n", before, after);
 
@@ -215,28 +222,27 @@ void print_res_to_terminal(test_result *res, size_t res_size) {
 }
 
 int16_t test_toplevel(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, FILE *out_file) {
-    size_t sizes[8] = {9871, 15002, 61234, 120000, 1012322, 327001217, 6494424214};
-    test_result results[8 + 3];
+    size_t sizes[6] = {64, 15002, 61234, 120000, 1012322, 32700121};
+    test_result results[9];
     size_t i;
 
     printf("start test\n\n");
     
-    for (i = 0; i < 5; ++i) {
+    for (i = 0; i < 6; ++i) {
         printf("test #%d\n", i + 1);
         results[i] = run_int_tests(this, pIMem, sizes[i], TRUE);
     }
-    for (i = 5 - 3; i < 5; ++i) {
-        printf("test #%d\n", i + 1 + 3);
+    for (i = 3; i < 6; ++i) {
+        printf("test #%d\n", i + 4);
         results[i + 3] = run_int_tests(this, pIMem, sizes[i], FALSE);
     }
 
     printf("\nend tests\nprint result data\n\n");
 
-    print_res_to_terminal(results, 8);
+    print_res_to_terminal(results, 9);
 
     printf("end print data\n\n");
 
-    //print_res_to_file(out_file, results, 5 + 3);
     return 0;
 }
 

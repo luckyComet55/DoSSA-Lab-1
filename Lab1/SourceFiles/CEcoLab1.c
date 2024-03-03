@@ -467,6 +467,7 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
     buffer_copy = pCMe->m_pIMem->pVTbl->Alloc(pCMe->m_pIMem, elem_count * elem_size);
     if (buffer_copy == 0) {
         printf("\n\nNo data was allocated\nTerminating\n\n");
+        return -13;
     }
 
     err_code = timsort_actual(
