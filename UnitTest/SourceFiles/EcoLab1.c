@@ -222,8 +222,10 @@ void print_res_to_terminal(test_result *res, size_t res_size) {
 }
 
 int16_t test_toplevel(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, FILE *out_file) {
-    size_t sizes[6] = {64, 15002, 61234, 120000, 1012322, 32700121};
+    size_t sizes[6] = {64, 15002, 61234, 120000, 1012322, 3270012};
     test_result results[9];
+    FILE* outfile;
+    errno_t err = 0;
     size_t i;
 
     printf("start test\n\n");
@@ -240,6 +242,15 @@ int16_t test_toplevel(IEcoLab1 *this, IEcoMemoryAllocator1 *pIMem, FILE *out_fil
     printf("\nend tests\nprint result data\n\n");
 
     print_res_to_terminal(results, 9);
+
+    printf("Create/open file to write results\n\n");
+    err = fopen_s(&outfile, "out.csv", "w");
+    if (err != 0) {
+        printf("Could not create/open file %s\n\n", "out.csv");
+        return -17;
+    }
+
+    print_res_to_file(outfile, results, 9);
 
     printf("end print data\n\n");
 
