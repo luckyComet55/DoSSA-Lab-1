@@ -18,7 +18,17 @@ add_definitions(-D_CONSOLE)
 
 include_directories(Lab1/HeaderFiles)
 include_directories(Lab1/SharedFiles)
-include_directories(UnitTest/HeaderFiles)
+include_directories(Lab2/HeaderFiles)
+include_directories(Lab2/SharedFiles)
+include_directories(libs/headers)
+
+set(ECO_FRAMEWORK_DOT_LIB
+        $ENV{ECO_FRAMEWORK}/Eco.InterfaceBus1/BuildFiles/Windows/x86/StaticRelease/00000000000000000000000042757331.lib
+        $ENV{ECO_FRAMEWORK}/Eco.MemoryManager1/BuildFiles/Windows/x86/StaticRelease/0000000000000000000000004D656D31.lib
+        $ENV{ECO_FRAMEWORK}/Eco.FileSystemManagement1/BuildFiles/Windows/x86/StaticRelease/00000000000000000000000046534D31.lib
+        $ENV{ECO_FRAMEWORK}/Eco.System1/BuildFiles/Windows/x86/StaticRelease/00000000000000000000000000000100.lib
+)
+
 
 include_directories(
         $ENV{ECO_FRAMEWORK}/Eco.List1/SharedFiles
@@ -29,6 +39,14 @@ include_directories(
         $ENV{ECO_FRAMEWORK}/Eco.FileSystemManagement1/SharedFiles
 )
 
+set(ECO_CALC_LIB
+        libs/headers/IEcoCalculatorX.h
+        libs/headers/IEcoCalculatorY.h
+        libs/headers/IdEcoCalculatorA.h
+        libs/headers/IdEcoCalculatorB.h
+        libs/headers/IdEcoCalculatorD.h
+        libs/headers/IdEcoCalculatorE.h
+)
 
 add_library(
         1F5DF16EE1BF43B999A434ED38FE8F3A
@@ -39,22 +57,40 @@ add_library(
         Lab1/SharedFiles/IEcoLab1.h
         Lab1/HeaderFiles/CEcoLab1.h
         Lab1/HeaderFiles/CEcoLab1Factory.h
+        ${ECO_CALC_LIB}
+)
+
+add_library(
+        1F5DF16EE1BF43B999A434ED38FE8F3B
+        SHARED
+        Lab2/SourceFiles/CEcoLab2.c
+        Lab2/SourceFiles/CEcoLab2Factory.c
+        Lab2/SharedFiles/IdEcoLab2.h
+        Lab2/HeaderFiles/CEcoLab2.h
+        Lab2/HeaderFiles/CEcoLab2Factory.h
 )
 
 add_executable(
         Lab1
-        UnitTest/SourceFiles/EcoLab1.c
-        Lab1/SharedFiles/IdEcoLab1.h
-        Lab1/SharedFiles/IEcoLab1.h
-        Lab1/HeaderFiles/CEcoLab1.h
-        Lab1/HeaderFiles/CEcoLab1Factory.h
+        UnitTest/EcoLab1.c
 )
 
-target_link_libraries(Lab1 1F5DF16EE1BF43B999A434ED38FE8F3A)
+add_executable(
+        Lab2
+        UnitTest/EcoLab2.c
+        Lab1/SharedFiles/IdEcoLab1.h
+        Lab1/SharedFiles/IEcoLab1.h
+        ${ECO_CALC_LIB}
+)
+
 target_link_libraries(
         Lab1
-        $ENV{ECO_FRAMEWORK}/Eco.InterfaceBus1/BuildFiles/Windows/x86/StaticRelease/00000000000000000000000042757331.lib
-        $ENV{ECO_FRAMEWORK}/Eco.MemoryManager1/BuildFiles/Windows/x86/StaticRelease/0000000000000000000000004D656D31.lib
-        $ENV{ECO_FRAMEWORK}/Eco.FileSystemManagement1/BuildFiles/Windows/x86/StaticRelease/00000000000000000000000046534D31.lib
-        $ENV{ECO_FRAMEWORK}/Eco.System1/BuildFiles/Windows/x86/StaticRelease/00000000000000000000000000000100.lib
+        1F5DF16EE1BF43B999A434ED38FE8F3A
+        ${ECO_FRAMEWORK_DOT_LIB}
+)
+target_link_libraries(
+        Lab2
+        1F5DF16EE1BF43B999A434ED38FE8F3A
+        1F5DF16EE1BF43B999A434ED38FE8F3B
+        ${ECO_FRAMEWORK_DOT_LIB}
 )
