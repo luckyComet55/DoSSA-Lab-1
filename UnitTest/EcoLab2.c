@@ -59,13 +59,9 @@ void print_int_arr(int* arr, size_t arr_size) {
 // Функция EcoMain - точка входа
 int16_t EcoMain(IEcoUnknown* pIUnk) {
     int16_t result = -1;
-    /* Указатель на системный интерфейс */
     IEcoSystem1* pISys = 0;
-    /* Указатель на интерфейс работы с системной интерфейсной шиной */
     IEcoInterfaceBus1* pIBus = 0;
-    /* Указатель на интерфейс работы с памятью */
     IEcoMemoryAllocator1* pIMem = 0;
-    /* Указатель на тестируемый интерфейс */
     IEcoLab1* pIEcoLab1Rec = 0;
     IEcoCalculatorY* pIY = 0;
     IEcoCalculatorX* pIX = 0;
@@ -74,28 +70,24 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     void *int_arr = NULL;
     size_t int_arr_size = 10;
 
-    /* Проверка и создание системного интерфейса */
     result = pIUnk->pVTbl->QueryInterface(pIUnk, &GID_IEcoSystem1, (void **)&pISys);
     if (result != 0 && pISys == 0) {
         printf("Could not create system interface\n");
         goto Release;
     }
 
-    /* Получение интерфейса для работы с интерфейсной шиной */
     result = pISys->pVTbl->QueryInterface(pISys, &IID_IEcoInterfaceBus1, (void **)&pIBus);
     if (result != 0 || pIBus == 0) {
         printf("Could not get system bus interface\n");
         goto Release;
     }
 
-    /* Получение интерфейса управления памятью */
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoMemoryManager1, 0, &IID_IEcoMemoryAllocator1, (void**) &pIMem);
     if (result != 0 || pIMem == 0) {
         printf("Could not get memory interface\n");
         goto Release;
     }
 
-    /* Получение тестируемого интерфейса */
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoLab1, 0, &IID_IEcoLab1, (void**) &pIEcoLab1Rec);
     if (result != 0 || pIEcoLab1Rec == 0) {
         printf("Could not get EcoLab1 component\n");
@@ -103,7 +95,6 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     }
     printf("Check IEcoLab1 component\n");
 
-    /* запрос интерфейса IEcoCalculatorY через IEcoLab1 */
     result = pIEcoLab1Rec->pVTbl->QueryInterface(pIEcoLab1Rec, &IID_IEcoCalculatorY, (void **) &pIY);
     if (result != 0 || pIY == 0) {
         printf("Could not get IEcoCalculatorY interface\n");
@@ -111,7 +102,6 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     }
     printf("Check IEcoCalculatorY interface\n");
 
-    /* запрос интерфейса IEcoCalculatorX через IEcoLab1 */
     result = pIEcoLab1Rec->pVTbl->QueryInterface(pIEcoLab1Rec, &IID_IEcoCalculatorX, (void **) &pIX);
     if (result != 0 || pIX == 0) {
         printf("Could not get IEcoCalculatorX interface\n");
@@ -181,6 +171,9 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoLab2, 0, &IID_IEcoLab1, (void**) &pIEcoLab1);
     if (result == 0) {
         printf("Got IEcoLab1 interface aggregated from CEcoLab2\n");
+    } else {
+        printf("Could not get IEcoLab1 interface aggregated from CEcoLab2\n");
+        goto Release;
     }
 
     int_arr = generate_int_full_random(pIMem, int_arr_size);

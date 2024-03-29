@@ -78,8 +78,6 @@ add_executable(
 add_executable(
         Lab2
         UnitTest/EcoLab2.c
-        Lab1/SharedFiles/IdEcoLab1.h
-        Lab1/SharedFiles/IEcoLab1.h
         ${ECO_CALC_LIB}
 )
 
@@ -90,7 +88,7 @@ target_link_libraries(
 )
 target_link_libraries(
         Lab2
-        1F5DF16EE1BF43B999A434ED38FE8F3A
         1F5DF16EE1BF43B999A434ED38FE8F3B
+        1F5DF16EE1BF43B999A434ED38FE8F3A
         ${ECO_FRAMEWORK_DOT_LIB}
 )
