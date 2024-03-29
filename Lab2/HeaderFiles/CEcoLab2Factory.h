@@ -24,13 +24,10 @@
 
 typedef struct CEcoLab2Factory {
 
-    /* Таблица функций интерфейса IEcoComponentFactory */
     IEcoComponentFactoryVTbl* m_pVTblICF;
 
-    /* Счетчик ссылок */
     uint32_t m_cRef;
 
-    /* Данные компонентов для фабрики */
     CreateInstance m_pInstance;
     InitInstance m_pInitInstance;
     char_t m_Name[64];

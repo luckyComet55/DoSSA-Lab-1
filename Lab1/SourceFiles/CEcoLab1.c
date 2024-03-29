@@ -82,7 +82,6 @@ int16_t ECOCALLMETHOD CEcoLab1_QueryInterface(/* in */ struct IEcoLab1* me, /* i
     IEcoUnknown* nonDelegating = (IEcoUnknown*)&pCMe->m_pVTblINondelegatingUnk;
     int16_t result = 0;
 
-    /* Проверка указателей */
     if (me == 0 || ppv == 0) {
         return -1;
     }
@@ -109,7 +108,6 @@ int16_t ECOCALLMETHOD CEcoLab1_QueryInterface(/* in */ struct IEcoLab1* me, /* i
 uint32_t ECOCALLMETHOD CEcoLab1_AddRef(/* in */ struct IEcoLab1* me) {
     CEcoLab1* pCMe = (CEcoLab1*)me;
 
-    /* Проверка указателя */
     if (me == 0 ) {
         return -1;
     }
@@ -131,7 +129,6 @@ uint32_t ECOCALLMETHOD CEcoLab1_AddRef(/* in */ struct IEcoLab1* me) {
 uint32_t ECOCALLMETHOD CEcoLab1_Release(/* in */ struct IEcoLab1* me) {
     CEcoLab1* pCMe = (CEcoLab1*)me;
 
-    /* Проверка указателя */
     if (me == 0 ) {
         return -1;
     }
@@ -692,15 +689,12 @@ int16_t ECOCALLMETHOD initCEcoLab1(/*in*/ struct IEcoLab1* me, /* in */ struct I
     IEcoUnknown* pOuterUnknown = (IEcoUnknown*) me;
     int16_t result = -1;
 
-    /* Проверка указателей */
     if (me == 0 ) {
         return result;
     }
 
-    /* Сохранение указателя на системный интерфейс */
     pCMe->m_pISys = (IEcoSystem1*)pIUnkSystem;
 
-    /* Получение интерфейса для работы с интерфейсной шиной */
     result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void **)&pIBus);
 
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorD, 0, &IID_IEcoCalculatorY, (void**) &pCMe->m_pIY);
@@ -713,17 +707,14 @@ int16_t ECOCALLMETHOD initCEcoLab1(/*in*/ struct IEcoLab1* me, /* in */ struct I
         result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorA, 0, &IID_IEcoCalculatorX, (void**) &pCMe->m_pIX);
     }
 
-    /* Проверка указателей */
     if (me == 0 ) {
         return result;
     }
 
-    /* Сохранение указателя на системный интерфейс */
     pCMe->m_pISys = (IEcoSystem1*)pIUnkSystem;
 
 
 
-    /* Освобождение */
     pIBus->pVTbl->Release(pIBus);
 	
     return result;
@@ -780,52 +771,39 @@ int16_t ECOCALLMETHOD createCEcoLab1(/* in */ IEcoUnknown* pIUnkSystem, /* in */
     CEcoLab1* pCMe = 0;
     UGUID* rcid = (UGUID*)&CID_EcoMemoryManager1;
 	
-    /* Проверка указателей */
     if (ppIEcoLab1 == 0 || pIUnkSystem == 0) {
         return result;
     }
 
-    /* Получение системного интерфейса приложения */
     result = pIUnkSystem->pVTbl->QueryInterface(pIUnkSystem, &GID_IEcoSystem1, (void **)&pISys);
 
-    /* Проверка */
     if (result != 0 && pISys == 0) {
         return result;
     }
 
-    /* Получение интерфейса для работы с интерфейсной шиной */
     result = pISys->pVTbl->QueryInterface(pISys, &IID_IEcoInterfaceBus1, (void **)&pIBus);
 
-	/* Получение идентификатора компонента для работы с памятью */
     result = pIBus->pVTbl->QueryInterface(pIBus, &IID_IEcoInterfaceBus1MemExt, (void**)&pIMemExt);
     if (result == 0 && pIMemExt != 0) {
         rcid = (UGUID*)pIMemExt->pVTbl->get_Manager(pIMemExt);
         pIMemExt->pVTbl->Release(pIMemExt);
     }
 
-    /* Получение интерфейса распределителя памяти */
     pIBus->pVTbl->QueryComponent(pIBus, rcid, 0, &IID_IEcoMemoryAllocator1, (void**) &pIMem);
 
-    /* Проверка */
     if (result != 0 && pIMem == 0) {
-        /* Освобождение системного интерфейса в случае ошибки */
         pISys->pVTbl->Release(pISys);
         return result;
     }
 
-    /* Выделение памяти для данных экземпляра */
     pCMe = (CEcoLab1*)pIMem->pVTbl->Alloc(pIMem, sizeof(CEcoLab1));
 
-    /* Сохранение указателя на системный интерфейс */
     pCMe->m_pISys = pISys;
 
-    /* Сохранение указателя на интерфейс для работы с памятью */
     pCMe->m_pIMem = pIMem;
 
-    /* Установка счетчика ссылок на компонент */
     pCMe->m_cRef = 1;
 
-    /* Создание таблицы функций интерфейса IEcoLab1 */
     pCMe->m_pVTblIEcoLab1 = &g_x277FC00C35624096AFCFC125B94EEC90VTbl;
 
     pCMe->m_pVTblIY = &g_xBD6414C29096423EA90C04D77AFD1CADVTblLab1;
@@ -841,7 +819,6 @@ int16_t ECOCALLMETHOD createCEcoLab1(/* in */ IEcoUnknown* pIUnkSystem, /* in */
         pCMe->m_pIUnkOuter = (IEcoUnknown*)&pCMe->m_pVTblINondelegatingUnk;
     }
 
-    /* Инициализация данных */
     pCMe->m_Name = 0;
 
     pCMe->m_pIY = 0;
@@ -850,10 +827,8 @@ int16_t ECOCALLMETHOD createCEcoLab1(/* in */ IEcoUnknown* pIUnkSystem, /* in */
 
     pCMe->m_pInnerUnknown = 0;
 
-    /* Возврат указателя на интерфейс */
     *ppIEcoLab1 = (IEcoLab1*)pCMe;
 
-    /* Освобождение */
     pIBus->pVTbl->Release(pIBus);
 
     return 0;

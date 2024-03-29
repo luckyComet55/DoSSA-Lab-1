@@ -83,12 +83,9 @@ uint32_t ECOCALLMETHOD CEcoLab2Factory_Release(/* in */ IEcoComponentFactory* me
         return -1;
     }
 
-    /* Уменьшение счетчика ссылок на компонент */
     --pCMe->m_cRef;
 
-    /* В случае обнуления счетчика, освобождение данных экземпляра */
     if ( pCMe->m_cRef == 0 ) {
-        //deleteCEcoLab2Factory(&pCMe->m_VtblICF);
         return 0;
     }
     return pCMe->m_cRef;
@@ -139,25 +136,19 @@ int16_t ECOCALLMETHOD CEcoLab2Factory_Alloc(/* in */ struct IEcoComponentFactory
         return -1;
     }
 
-    /* Агрегирование при условии если IID это IID_IEcoUnknown */
     if ( ( pIUnknownOuter != 0 ) && !IsEqualUGUID(riid, &IID_IEcoUnknown ) ) {
-        /* не поддерживает агрегирование */
         return -1;
     }
 
-    /* Создание компонента */
     result = pCMe->m_pInstance(pISystem, pIUnknownOuter, (void**)&pIUnk);
     if ( result != 0 || pIUnk == 0) {
         return -1;
     }
 
-    /* Инициализация компонента */
     result = me->pVTbl->Init(me, pISystem, pIUnk);
 	
-    /* Получение указателя на интерфейс */
     result = pIUnk->pVTbl->QueryInterface(pIUnk, riid, ppv);
 
-    /* Уменьшение ссылки запрошенной Фабрикой компонентов */
     pIUnk->pVTbl->Release(pIUnk);
 
     return result;

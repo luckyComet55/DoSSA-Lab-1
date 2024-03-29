@@ -32,7 +32,6 @@
 static const UGUID CID_EcoLab1 = {0x01, 0x10, 0x1F, 0x5D, 0xF1, 0x6E, 0xE1, 0xBF, 0x43, 0xB9, 0x99, 0xA4, 0x34, 0xED, 0x38, 0xFE, 0x8F, 0x3A};
 #endif /* __CID_EcoLab1 */
 
-/* Фабрика компонента для динамической и статической компановки */
 #ifdef ECO_DLL
 ECO_EXPORT IEcoComponentFactory* ECOCALLMETHOD GetIEcoComponentFactoryPtr();
 #elif ECO_LIB
