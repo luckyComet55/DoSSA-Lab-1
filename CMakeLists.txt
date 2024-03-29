@@ -81,6 +81,12 @@ add_executable(
         ${ECO_CALC_LIB}
 )
 
+add_custom_command(TARGET Lab2 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${PROJECT_SOURCE_DIR}/libs/dll"
+        $<TARGET_FILE_DIR:Lab2>
+)
+
 target_link_libraries(
         Lab1
         1F5DF16EE1BF43B999A434ED38FE8F3A
