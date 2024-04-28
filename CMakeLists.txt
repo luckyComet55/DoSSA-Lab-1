@@ -49,6 +49,29 @@ set(ECO_CALC_LIB
 )
 
 add_library(
+        1F5DF16EE1BF43B999A434ED38FE8F3C
+        SHARED
+        Lab1/SourceFiles/CEcoLab1.c
+        Lab1/SourceFiles/CEcoLab1Factory.c
+        Lab1/SourceFiles/CEcoLab1ConnectionPoint.c
+        Lab1/SourceFiles/CEcoLab1EnumConnectionPoints.c
+        Lab1/SourceFiles/CEcoLab1EnumConnections.c
+        Lab1/SharedFiles/IdEcoLab1.h
+        Lab1/SharedFiles/IEcoLab1.h
+        Lab1/SharedFiles/IEcoConnectionPoint.h
+        Lab1/SharedFiles/IEcoConnectionPointContainer.h
+        Lab1/SharedFiles/IEcoEnumConnectionPoint.h
+        Lab1/SharedFiles/IEcoEnumConnections.h
+        Lab1/SharedFiles/IEcoLab1Events.h
+        Lab1/HeaderFiles/CEcoLab1.h
+        Lab1/HeaderFiles/CEcoLab1Factory.h
+        Lab1/HeaderFiles/CEcoLab1ConnectionPoint.h
+        Lab1/HeaderFiles/CEcoLab1EnumConnectionPoints.h
+        Lab1/HeaderFiles/CEcoLab1EnumConnections.h
+        ${ECO_CALC_LIB}
+)
+
+add_library(
         1F5DF16EE1BF43B999A434ED38FE8F3A
         SHARED
         Lab1/SourceFiles/CEcoLab1.c
@@ -68,6 +91,11 @@ add_library(
         Lab2/SharedFiles/IdEcoLab2.h
         Lab2/HeaderFiles/CEcoLab2.h
         Lab2/HeaderFiles/CEcoLab2Factory.h
+)
+
+add_executable(
+        Lab3
+        UnitTest/EcoLab1.c
 )
 
 add_executable(
@@ -96,5 +124,10 @@ target_link_libraries(
         Lab2
         1F5DF16EE1BF43B999A434ED38FE8F3B
         1F5DF16EE1BF43B999A434ED38FE8F3A
+        ${ECO_FRAMEWORK_DOT_LIB}
+)
+target_link_libraries(
+        Lab3
+        1F5DF16EE1BF43B999A434ED38FE8F3C
         ${ECO_FRAMEWORK_DOT_LIB}
 )
