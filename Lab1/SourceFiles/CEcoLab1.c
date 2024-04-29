@@ -560,6 +560,7 @@ void merge_sorted_subarrays(
 }
 
 int16_t timsort_actual(
+    IEcoLab1* me,
     void* data,
     size_t elem_count,
     size_t elem_size,
@@ -572,6 +573,8 @@ int16_t timsort_actual(
     size_t sub_arr_size = min_run, last_arr_size = elem_count % min_run == 0 ? min_run : elem_count % min_run;
     size_t arr_idx = 0;
     size_t arrs_left = elem_count / min_run + (elem_count % min_run != 0);
+
+    CEcoLab1_Fire_OnTimsort(me, data, elem_count * elem_size, elem_size);
 
     if (elem_count < 2) {
         return 0;
@@ -606,6 +609,7 @@ int16_t timsort_actual(
 
     while (arrs_left > 1) {
         for (arr_idx = 0; arr_idx < arrs_left - 2; arr_idx += 2) {
+            CEcoLab1_Fire_OnBeforeMerge(me, (char*)data + arr_idx * sub_arr_size * elem_size, 2 * sub_arr_size, elem_size);
             merge_sorted_subarrays(
                 (char*)data + arr_idx * sub_arr_size * elem_size,
                 (char*)data + arr_idx * sub_arr_size * elem_size,
@@ -616,9 +620,11 @@ int16_t timsort_actual(
                 comp,
                 buffer_copy
             );
+            CEcoLab1_Fire_OnAfterMerge(me, (char*)data + arr_idx * sub_arr_size * elem_size, 2 * sub_arr_size, elem_size);
         }
 
         if (arrs_left % 2 == 0) {
+            CEcoLab1_Fire_OnBeforeMerge(me, (char*)data + arr_idx * sub_arr_size * elem_size, sub_arr_size + last_arr_size, elem_size);
             merge_sorted_subarrays(
                 (char*)data + (elem_count - last_arr_size - sub_arr_size) * elem_size,
                 (char*)data + (elem_count - last_arr_size - sub_arr_size) * elem_size,
@@ -629,6 +635,7 @@ int16_t timsort_actual(
                 comp,
                 buffer_copy
             );
+            CEcoLab1_Fire_OnAfterMerge(me, (char*)data + arr_idx * sub_arr_size * elem_size, sub_arr_size + last_arr_size, elem_size);
             last_arr_size += sub_arr_size;
         }
         arrs_left = arrs_left / 2 + (arrs_left % 2 != 0);
@@ -660,6 +667,7 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
     }
 
     err_code = timsort_actual(
+        me,
         pData,
         elem_count,
         elem_size,
@@ -669,12 +677,66 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
 
     pCMe->m_pIMem->pVTbl->Free(pCMe->m_pIMem, buffer_copy);
 
-    CEcoLab1_Fire_OnMyCallback(me, pCMe->m_Name);
-
     return err_code;
 }
 
-int16_t ECOCALLMETHOD CEcoLab1_Fire_OnMyCallback(/* in */ struct IEcoLab1* me, /* in */ char_t* Name) {
+int16_t ECOCALLMETHOD CEcoLab1_Fire_OnAfterMerge(/* in */ struct IEcoLab1* me, /* in */ const void* arr, size_t arr_size, size_t elem_size) {
+    CEcoLab1* pCMe = (CEcoLab1*)me;
+    int16_t result = 0;
+    IEcoEnumConnections* pEnum = 0;
+    IEcoLab1Events* pIEvents = 0;
+    EcoConnectionData cd;
+
+    if (me == 0 ) {
+        return -1;
+    }
+
+    if (pCMe->m_pISinkCP != 0) {
+        result = ((IEcoConnectionPoint*)pCMe->m_pISinkCP)->pVTbl->EnumConnections((IEcoConnectionPoint*)pCMe->m_pISinkCP, &pEnum);
+        if ( (result == 0) && (pEnum != 0) ) {
+            while (pEnum->pVTbl->Next(pEnum, 1, &cd, 0) == 0) {
+                result = cd.pUnk->pVTbl->QueryInterface(cd.pUnk, &IID_IEcoLab1Events, (void**)&pIEvents);
+                if ( (result == 0) && (pIEvents != 0) ) {
+                    result = pIEvents->pVTbl->OnAfterMerge(pIEvents, arr, arr_size, elem_size);
+                    pIEvents->pVTbl->Release(pIEvents);
+                }
+                cd.pUnk->pVTbl->Release(cd.pUnk);
+            }
+            pEnum->pVTbl->Release(pEnum);
+        }
+    }
+    return result;
+}
+
+int16_t ECOCALLMETHOD CEcoLab1_Fire_OnBeforeMerge(/* in */ struct IEcoLab1* me, /* in */ const void* arr, size_t arr_size, size_t elem_size) {
+    CEcoLab1* pCMe = (CEcoLab1*)me;
+    int16_t result = 0;
+    IEcoEnumConnections* pEnum = 0;
+    IEcoLab1Events* pIEvents = 0;
+    EcoConnectionData cd;
+
+    if (me == 0 ) {
+        return -1;
+    }
+
+    if (pCMe->m_pISinkCP != 0) {
+        result = ((IEcoConnectionPoint*)pCMe->m_pISinkCP)->pVTbl->EnumConnections((IEcoConnectionPoint*)pCMe->m_pISinkCP, &pEnum);
+        if ( (result == 0) && (pEnum != 0) ) {
+            while (pEnum->pVTbl->Next(pEnum, 1, &cd, 0) == 0) {
+                result = cd.pUnk->pVTbl->QueryInterface(cd.pUnk, &IID_IEcoLab1Events, (void**)&pIEvents);
+                if ( (result == 0) && (pIEvents != 0) ) {
+                    result = pIEvents->pVTbl->OnBeforeMerge(pIEvents, arr, arr_size, elem_size);
+                    pIEvents->pVTbl->Release(pIEvents);
+                }
+                cd.pUnk->pVTbl->Release(cd.pUnk);
+            }
+            pEnum->pVTbl->Release(pEnum);
+        }
+    }
+    return result;
+}
+
+int16_t ECOCALLMETHOD CEcoLab1_Fire_OnTimsort(/* in */ struct IEcoLab1* me, /* in */ const void* arr, size_t arr_size, size_t elem_size) {
     CEcoLab1* pCMe = (CEcoLab1*)me;
     int16_t result = 0;
     uint32_t count = 0;
@@ -693,7 +755,7 @@ int16_t ECOCALLMETHOD CEcoLab1_Fire_OnMyCallback(/* in */ struct IEcoLab1* me, /
             while (pEnum->pVTbl->Next(pEnum, 1, &cd, 0) == 0) {
                 result = cd.pUnk->pVTbl->QueryInterface(cd.pUnk, &IID_IEcoLab1Events, (void**)&pIEvents);
                 if ( (result == 0) && (pIEvents != 0) ) {
-                    result = pIEvents->pVTbl->OnMyCallback(pIEvents, Name);
+                    result = pIEvents->pVTbl->OnTimsort(pIEvents, arr, arr_size, elem_size);
                     pIEvents->pVTbl->Release(pIEvents);
                 }
                 cd.pUnk->pVTbl->Release(cd.pUnk);

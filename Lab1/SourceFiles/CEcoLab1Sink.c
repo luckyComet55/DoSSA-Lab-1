@@ -133,7 +133,7 @@ void CEcoLab1Sink_printIntArrayLeftRight(const void *array, size_t size) {
 }
 
 
-int16_t ECOCALLMETHOD CEcoLab1Sink_OnMergeSortCalled(/* in */ struct IEcoLab1Events* me, /* in */ const void *startPtr, size_t elem_count) {
+int16_t ECOCALLMETHOD CEcoLab1Sink_OnTimsort(/* in */ struct IEcoLab1Events* me, /* in */ const void *startPtr, size_t elem_count, size_t elem_size) {
     CEcoLab1Sink *pCMe = (CEcoLab1Sink *) me;
     if (me == 0) {
         return -1;
@@ -145,31 +145,7 @@ int16_t ECOCALLMETHOD CEcoLab1Sink_OnMergeSortCalled(/* in */ struct IEcoLab1Eve
     return 0;
 }
 
-int16_t ECOCALLMETHOD CEcoLab1Sink_OnRecursiveCall(/* in */ struct IEcoLab1Events* me, bool_t firstHalf) {
-    CEcoLab1Sink *pCMe = (CEcoLab1Sink *) me;
-    if (me == 0) {
-        return -1;
-    }
-//    system("cls");
-    printf("depth: %d - calling mergeSort recursively for %s half\n",  pCMe->m_depth, firstHalf? "1st" : "2nd");
-    pCMe->m_depth++;
-    Sleep(large_pause);
-    return 0;
-}
-
-int16_t ECOCALLMETHOD CEcoLab1Sink_OnRecursiveCallReturned(/* in */ struct IEcoLab1Events* me, bool_t firstHalf) {
-    CEcoLab1Sink *pCMe = (CEcoLab1Sink *) me;
-    if (me == 0) {
-        return -1;
-    }
-//    system("cls");
-    pCMe->m_depth--;
-    printf("depth: %d - recursive call for %s half returned\n", pCMe->m_depth, firstHalf? "1st" : "2nd");
-    Sleep(large_pause);
-    return 0;
-}
-
-int16_t ECOCALLMETHOD CEcoLab1Sink_BeforeMerge(/* in */ struct IEcoLab1Events* me, /* in */ const void *startPtr, size_t elem_count) {
+int16_t ECOCALLMETHOD CEcoLab1Sink_OnBeforeMerge(/* in */ struct IEcoLab1Events* me, /* in */ const void *startPtr, size_t elem_count, size_t elem_size) {
     CEcoLab1Sink *pCMe = (CEcoLab1Sink *) me;
     if (me == 0) {
         return -1;
@@ -181,7 +157,7 @@ int16_t ECOCALLMETHOD CEcoLab1Sink_BeforeMerge(/* in */ struct IEcoLab1Events* m
     return 0;
 }
 
-int16_t ECOCALLMETHOD CEcoLab1Sink_AfterMerge(/* in */ struct IEcoLab1Events* me, /* in */ const void *startPtr, size_t elem_count) {
+int16_t ECOCALLMETHOD CEcoLab1Sink_OnAfterMerge(/* in */ struct IEcoLab1Events* me, /* in */ const void *startPtr, size_t elem_count, size_t elem_size) {
     CEcoLab1Sink *pCMe = (CEcoLab1Sink *) me;
     if (me == 0) {
         return -1;
@@ -192,25 +168,6 @@ int16_t ECOCALLMETHOD CEcoLab1Sink_AfterMerge(/* in */ struct IEcoLab1Events* me
     Sleep(large_pause);
     return 0;
 }
-
-int16_t ECOCALLMETHOD CEcoLab1Sink_OnMergeElementSelected(/* in */ struct IEcoLab1Events* me, /* in */ const void *elementPtr, bool_t isFromFirstHalf) {
-    CEcoLab1Sink *pCMe = (CEcoLab1Sink *) me;
-    int element = *(int *)elementPtr;
-    if (me == 0) {
-        return -1;
-    }
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (isFromFirstHalf) {
-        SetConsoleTextAttribute(handle, BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-    } else {
-        SetConsoleTextAttribute(handle, BACKGROUND_RED | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-    }
-    printf(" %d ", element);
-    SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-    Sleep(small_pause);
-    return 0;
-}
-
 
 /*
  *
@@ -282,12 +239,9 @@ IEcoLab1VTblEvents g_x2D2E3B9214F248A6A09ECB494B59C795VTblEvents = {
     CEcoLab1Sink_QueryInterface,
     CEcoLab1Sink_AddRef,
     CEcoLab1Sink_Release,
-    CEcoLab1Sink_OnMergeSortCalled,
-    CEcoLab1Sink_OnRecursiveCall,
-    CEcoLab1Sink_OnRecursiveCallReturned,
-    CEcoLab1Sink_BeforeMerge,
-    CEcoLab1Sink_AfterMerge,
-    CEcoLab1Sink_OnMergeElementSelected
+    CEcoLab1Sink_OnTimsort,
+    CEcoLab1Sink_OnBeforeMerge,
+    CEcoLab1Sink_OnAfterMerge
 };
 
 /*
