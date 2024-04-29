@@ -68,6 +68,8 @@ add_library(
         Lab1/HeaderFiles/CEcoLab1ConnectionPoint.h
         Lab1/HeaderFiles/CEcoLab1EnumConnectionPoints.h
         Lab1/HeaderFiles/CEcoLab1EnumConnections.h
+        Lab1/HeaderFiles/CEcoLab1Sink.h
+        Lab1/SourceFiles/CEcoLab1Sink.c
         ${ECO_CALC_LIB}
 )
 
@@ -95,7 +97,7 @@ add_library(
 
 add_executable(
         Lab3
-        UnitTest/EcoLab1.c
+        UnitTest/EcoLab3.c
 )
 
 add_executable(
