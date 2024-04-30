@@ -13,14 +13,14 @@
 
 #include <stdio.h>
 
-int __cdecl compInts(const void *a_ptr, const void *b_ptr) {
+int __cdecl comp_int(const void *a_ptr, const void *b_ptr) {
     const int a = *(int *)a_ptr;
     const int b = *(int *)b_ptr;
     return (a > b) - (a < b);
 }
 
 
-void *createIntArray(IEcoMemoryAllocator1 *pIMem, size_t size) {
+void *create_int_array(IEcoMemoryAllocator1 *pIMem, size_t size) {
     size_t i;
     int *arr = (int *) pIMem->pVTbl->Alloc(pIMem, size * sizeof(int));
     for (i = 0; i < size; i++) {
@@ -41,8 +41,8 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     IEcoMemoryAllocator1* pIMem = 0;
     /* Указатель на тестируемый интерфейс */
     IEcoLab1* pIEcoLab1Rec = 0;
-    void *testArr = 0;
-    size_t testSize = 8;
+    void *test_arr = 0;
+    size_t test_arr_size = 8;
 
     /* Указатель на интерфейс контейнера точек подключения */
     IEcoConnectionPointContainer* pICPC = 0;
@@ -120,10 +120,10 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     }
     printf("sink created\n\ntesting sorting\n");
 
-    testArr = createIntArray(pIMem, testSize);
-    pIEcoLab1Rec->pVTbl->qsort(pIEcoLab1Rec, testArr, testSize, sizeof(int), compInts);
+    test_arr = create_int_array(pIMem, test_arr_size);
+    pIEcoLab1Rec->pVTbl->qsort(pIEcoLab1Rec, test_arr, test_arr_size, sizeof(int), comp_int);
 
-    pIMem->pVTbl->Free(pIMem, testArr);
+    pIMem->pVTbl->Free(pIMem, test_arr);
 
     if (pIEcoLab1Sink != 0) {
         /* Отключение */
