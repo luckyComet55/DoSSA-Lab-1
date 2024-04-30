@@ -11,6 +11,8 @@
 #include "IEcoLab1Events.h"
 #include "CEcoLab1Sink.h"
 
+#include <stdio.h>
+
 int __cdecl compInts(const void *a_ptr, const void *b_ptr) {
     const int a = *(int *)a_ptr;
     const int b = *(int *)b_ptr;
@@ -56,18 +58,22 @@ int16_t EcoMain(IEcoUnknown* pIUnk) {
     if (result != 0 && pISys == 0) {
         goto Release;
     }
+    printf("queried system component\n");
 
     /* Получение интерфейса для работы с интерфейсной шиной */
     result = pISys->pVTbl->QueryInterface(pISys, &IID_IEcoInterfaceBus1, (void **)&pIBus);
     if (result != 0 || pIBus == 0) {
         goto Release;
     }
+    printf("queried interface bus\n");
 
     /* Получение интерфейса управления памятью */
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoMemoryManager1, 0, &IID_IEcoMemoryAllocator1, (void**) &pIMem);
     if (result != 0 || pIMem == 0) {
         goto Release;
     }
+    
+    printf("queried memory allocator\n");
 
     /* Получение тестируемого интерфейса */
     result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoLab1, 0, &IID_IEcoLab1, (void**) &pIEcoLab1Rec);

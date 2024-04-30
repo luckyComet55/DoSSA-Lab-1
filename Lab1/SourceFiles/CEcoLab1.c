@@ -22,13 +22,9 @@
 #include "IEcoInterfaceBus1MemExt.h"
 #include "CEcoLab1.h"
 #include "CEcoLab1EnumConnectionPoints.h"
+#include "CEcoLab1EnumConnections.h"
 #include "IEcoConnectionPointContainer.h"
 #include "IEcoLab1Events.h"
-#include "IdEcoCalculatorD.h"
-#include "IdEcoCalculatorE.h"
-#include "IdEcoCalculatorB.h"
-#include "IdEcoCalculatorA.h"
-
 
 /*
     Свапает заданное число байт
@@ -644,7 +640,7 @@ void merge_sorted_subarrays(
 }
 
 int16_t timsort_actual(
-    IEcoLab1* me,
+    struct IEcoLab1* me,
     void* data,
     size_t elem_count,
     size_t elem_size,
@@ -788,16 +784,6 @@ int16_t ECOCALLMETHOD initCEcoLab1(/*in*/ struct IEcoLab1* me, /* in */ struct I
     pCMe->m_pISys = (IEcoSystem1*)pIUnkSystem;
 
     result = pCMe->m_pISys->pVTbl->QueryInterface(pCMe->m_pISys, &IID_IEcoInterfaceBus1, (void **)&pIBus);
-
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorD, 0, &IID_IEcoCalculatorY, (void**) &pCMe->m_pIY);
-    if (result != 0 || pCMe->m_pIY == 0) {
-        result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorE, 0, &IID_IEcoCalculatorY, (void**) &pCMe->m_pIY);
-    }
-
-    result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorB, pOuterUnknown, &IID_IEcoUnknown, (void**) &pCMe->m_pInnerUnknown);
-    if (result != 0 || pCMe->m_pInnerUnknown == 0) {
-        result = pIBus->pVTbl->QueryComponent(pIBus, &CID_EcoCalculatorA, 0, &IID_IEcoCalculatorX, (void**) &pCMe->m_pIX);
-    }
 
     if (me == 0 ) {
         return result;
