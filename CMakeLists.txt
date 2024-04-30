@@ -21,6 +21,7 @@ include_directories(Lab1/SharedFiles)
 include_directories(Lab2/HeaderFiles)
 include_directories(Lab2/SharedFiles)
 include_directories(libs/headers)
+include_directories(UnitTest/HeaderFiles)
 
 set(ECO_FRAMEWORK_DOT_LIB
         $ENV{ECO_FRAMEWORK}/Eco.InterfaceBus1/BuildFiles/Windows/x86/StaticRelease/00000000000000000000000042757331.lib
@@ -52,24 +53,25 @@ add_library(
         1F5DF16EE1BF43B999A434ED38FE8F3C
         SHARED
         Lab1/SourceFiles/CEcoLab1.c
-        Lab1/SourceFiles/CEcoLab1Factory.c
-        Lab1/SourceFiles/CEcoLab1ConnectionPoint.c
-        Lab1/SourceFiles/CEcoLab1EnumConnectionPoints.c
-        Lab1/SourceFiles/CEcoLab1EnumConnections.c
-        Lab1/SharedFiles/IdEcoLab1.h
-        Lab1/SharedFiles/IEcoLab1.h
-        Lab1/SharedFiles/IEcoConnectionPoint.h
-        Lab1/SharedFiles/IEcoConnectionPointContainer.h
-        Lab1/SharedFiles/IEcoEnumConnectionPoint.h
-        Lab1/SharedFiles/IEcoEnumConnections.h
-        Lab1/SharedFiles/IEcoLab1Events.h
         Lab1/HeaderFiles/CEcoLab1.h
         Lab1/HeaderFiles/CEcoLab1Factory.h
+        Lab1/SourceFiles/CEcoLab1Factory.c
+        Lab1/SharedFiles/IdEcoLab1.h
+        Lab1/SharedFiles/IEcoLab1.h
+
         Lab1/HeaderFiles/CEcoLab1ConnectionPoint.h
         Lab1/HeaderFiles/CEcoLab1EnumConnectionPoints.h
         Lab1/HeaderFiles/CEcoLab1EnumConnections.h
-        Lab1/HeaderFiles/CEcoLab1Sink.h
-        Lab1/SourceFiles/CEcoLab1Sink.c
+
+        Lab1/SourceFiles/CEcoLab1ConnectionPoint.c
+        Lab1/SourceFiles/CEcoLab1EnumConnectionPoints.c
+        Lab1/SourceFiles/CEcoLab1EnumConnections.c
+
+        Lab1/SharedFiles/IEcoConnectionPoint.h
+        Lab1/SharedFiles/IEcoConnectionPointContainer.h
+        Lab1/SharedFiles/IEcoEnumConnectionPoints.h
+        Lab1/SharedFiles/IEcoEnumConnections.h
+        Lab1/SharedFiles/IEcoLab1Events.h
         ${ECO_CALC_LIB}
 )
 
@@ -97,7 +99,9 @@ add_library(
 
 add_executable(
         Lab3
-        UnitTest/EcoLab3.c
+        UnitTest/HeaderFiles/CEcoLab1Sink.h
+        UnitTest/SourceFiles/CEcoLab1Sink.c
+        UnitTest/SourceFiles/EcoLab3.c
 )
 
 add_executable(
@@ -114,7 +118,7 @@ add_executable(
 add_custom_command(TARGET Lab3 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${PROJECT_SOURCE_DIR}/libs/dll"
-        $<TARGET_FILE_DIR:Lab2>
+        $<TARGET_FILE_DIR:Lab3>
 )
 
 target_link_libraries(

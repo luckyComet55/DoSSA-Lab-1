@@ -28,8 +28,6 @@
 #include "IdEcoCalculatorE.h"
 #include "IdEcoCalculatorB.h"
 #include "IdEcoCalculatorA.h"
-#include "CEcoLab2.h"
-#include <stdlib.h>
 
 
 /*
@@ -474,6 +472,92 @@ void insertion_sort(
     }
 }
 
+int16_t ECOCALLMETHOD CEcoLab1_Fire_OnAfterMerge(/* in */ struct IEcoLab1* me, /* in */ const void* arr, size_t arr_size, size_t elem_size) {
+    CEcoLab1* pCMe = (CEcoLab1*)me;
+    int16_t result = 0;
+    IEcoEnumConnections* pEnum = 0;
+    IEcoLab1Events* pIEvents = 0;
+    EcoConnectionData cd;
+
+    if (me == 0 ) {
+        return -1;
+    }
+
+    if (pCMe->m_pISinkCP != 0) {
+        result = ((IEcoConnectionPoint*)pCMe->m_pISinkCP)->pVTbl->EnumConnections((IEcoConnectionPoint*)pCMe->m_pISinkCP, &pEnum);
+        if ( (result == 0) && (pEnum != 0) ) {
+            while (pEnum->pVTbl->Next(pEnum, 1, &cd, 0) == 0) {
+                result = cd.pUnk->pVTbl->QueryInterface(cd.pUnk, &IID_IEcoLab1Events, (void**)&pIEvents);
+                if ( (result == 0) && (pIEvents != 0) ) {
+                    result = pIEvents->pVTbl->OnAfterMerge(pIEvents, arr, arr_size, elem_size);
+                    pIEvents->pVTbl->Release(pIEvents);
+                }
+                cd.pUnk->pVTbl->Release(cd.pUnk);
+            }
+            pEnum->pVTbl->Release(pEnum);
+        }
+    }
+    return result;
+}
+
+int16_t ECOCALLMETHOD CEcoLab1_Fire_OnBeforeMerge(/* in */ struct IEcoLab1* me, /* in */ const void* arr, size_t arr_size, size_t elem_size) {
+    CEcoLab1* pCMe = (CEcoLab1*)me;
+    int16_t result = 0;
+    IEcoEnumConnections* pEnum = 0;
+    IEcoLab1Events* pIEvents = 0;
+    EcoConnectionData cd;
+
+    if (me == 0 ) {
+        return -1;
+    }
+
+    if (pCMe->m_pISinkCP != 0) {
+        result = ((IEcoConnectionPoint*)pCMe->m_pISinkCP)->pVTbl->EnumConnections((IEcoConnectionPoint*)pCMe->m_pISinkCP, &pEnum);
+        if ( (result == 0) && (pEnum != 0) ) {
+            while (pEnum->pVTbl->Next(pEnum, 1, &cd, 0) == 0) {
+                result = cd.pUnk->pVTbl->QueryInterface(cd.pUnk, &IID_IEcoLab1Events, (void**)&pIEvents);
+                if ( (result == 0) && (pIEvents != 0) ) {
+                    result = pIEvents->pVTbl->OnBeforeMerge(pIEvents, arr, arr_size, elem_size);
+                    pIEvents->pVTbl->Release(pIEvents);
+                }
+                cd.pUnk->pVTbl->Release(cd.pUnk);
+            }
+            pEnum->pVTbl->Release(pEnum);
+        }
+    }
+    return result;
+}
+
+int16_t ECOCALLMETHOD CEcoLab1_Fire_OnTimsort(/* in */ struct IEcoLab1* me, /* in */ const void* arr, size_t arr_size, size_t elem_size) {
+    CEcoLab1* pCMe = (CEcoLab1*)me;
+    int16_t result = 0;
+    uint32_t count = 0;
+    uint32_t index = 0;
+    IEcoEnumConnections* pEnum = 0;
+    IEcoLab1Events* pIEvents = 0;
+    EcoConnectionData cd;
+
+    if (me == 0 ) {
+        return -1;
+    }
+
+    if (pCMe->m_pISinkCP != 0) {
+        result = ((IEcoConnectionPoint*)pCMe->m_pISinkCP)->pVTbl->EnumConnections((IEcoConnectionPoint*)pCMe->m_pISinkCP, &pEnum);
+        if ( (result == 0) && (pEnum != 0) ) {
+            while (pEnum->pVTbl->Next(pEnum, 1, &cd, 0) == 0) {
+                result = cd.pUnk->pVTbl->QueryInterface(cd.pUnk, &IID_IEcoLab1Events, (void**)&pIEvents);
+                if ( (result == 0) && (pIEvents != 0) ) {
+                    result = pIEvents->pVTbl->OnTimsort(pIEvents, arr, arr_size, elem_size);
+                    pIEvents->pVTbl->Release(pIEvents);
+                }
+                cd.pUnk->pVTbl->Release(cd.pUnk);
+            }
+            pEnum->pVTbl->Release(pEnum);
+        }
+    }
+    return result;
+}
+
 /*
     Сортировка слиянием двух
     отсортированных подмассивов.
@@ -680,95 +764,6 @@ int16_t ECOCALLMETHOD CEcoLab1_qsort(
     return err_code;
 }
 
-int16_t ECOCALLMETHOD CEcoLab1_Fire_OnAfterMerge(/* in */ struct IEcoLab1* me, /* in */ const void* arr, size_t arr_size, size_t elem_size) {
-    CEcoLab1* pCMe = (CEcoLab1*)me;
-    int16_t result = 0;
-    IEcoEnumConnections* pEnum = 0;
-    IEcoLab1Events* pIEvents = 0;
-    EcoConnectionData cd;
-
-    if (me == 0 ) {
-        return -1;
-    }
-
-    if (pCMe->m_pISinkCP != 0) {
-        result = ((IEcoConnectionPoint*)pCMe->m_pISinkCP)->pVTbl->EnumConnections((IEcoConnectionPoint*)pCMe->m_pISinkCP, &pEnum);
-        if ( (result == 0) && (pEnum != 0) ) {
-            while (pEnum->pVTbl->Next(pEnum, 1, &cd, 0) == 0) {
-                result = cd.pUnk->pVTbl->QueryInterface(cd.pUnk, &IID_IEcoLab1Events, (void**)&pIEvents);
-                if ( (result == 0) && (pIEvents != 0) ) {
-                    result = pIEvents->pVTbl->OnAfterMerge(pIEvents, arr, arr_size, elem_size);
-                    pIEvents->pVTbl->Release(pIEvents);
-                }
-                cd.pUnk->pVTbl->Release(cd.pUnk);
-            }
-            pEnum->pVTbl->Release(pEnum);
-        }
-    }
-    return result;
-}
-
-int16_t ECOCALLMETHOD CEcoLab1_Fire_OnBeforeMerge(/* in */ struct IEcoLab1* me, /* in */ const void* arr, size_t arr_size, size_t elem_size) {
-    CEcoLab1* pCMe = (CEcoLab1*)me;
-    int16_t result = 0;
-    IEcoEnumConnections* pEnum = 0;
-    IEcoLab1Events* pIEvents = 0;
-    EcoConnectionData cd;
-
-    if (me == 0 ) {
-        return -1;
-    }
-
-    if (pCMe->m_pISinkCP != 0) {
-        result = ((IEcoConnectionPoint*)pCMe->m_pISinkCP)->pVTbl->EnumConnections((IEcoConnectionPoint*)pCMe->m_pISinkCP, &pEnum);
-        if ( (result == 0) && (pEnum != 0) ) {
-            while (pEnum->pVTbl->Next(pEnum, 1, &cd, 0) == 0) {
-                result = cd.pUnk->pVTbl->QueryInterface(cd.pUnk, &IID_IEcoLab1Events, (void**)&pIEvents);
-                if ( (result == 0) && (pIEvents != 0) ) {
-                    result = pIEvents->pVTbl->OnBeforeMerge(pIEvents, arr, arr_size, elem_size);
-                    pIEvents->pVTbl->Release(pIEvents);
-                }
-                cd.pUnk->pVTbl->Release(cd.pUnk);
-            }
-            pEnum->pVTbl->Release(pEnum);
-        }
-    }
-    return result;
-}
-
-int16_t ECOCALLMETHOD CEcoLab1_Fire_OnTimsort(/* in */ struct IEcoLab1* me, /* in */ const void* arr, size_t arr_size, size_t elem_size) {
-    CEcoLab1* pCMe = (CEcoLab1*)me;
-    int16_t result = 0;
-    uint32_t count = 0;
-    uint32_t index = 0;
-    IEcoEnumConnections* pEnum = 0;
-    IEcoLab1Events* pIEvents = 0;
-    EcoConnectionData cd;
-
-    if (me == 0 ) {
-        return -1;
-    }
-
-    if (pCMe->m_pISinkCP != 0) {
-        result = ((IEcoConnectionPoint*)pCMe->m_pISinkCP)->pVTbl->EnumConnections((IEcoConnectionPoint*)pCMe->m_pISinkCP, &pEnum);
-        if ( (result == 0) && (pEnum != 0) ) {
-            while (pEnum->pVTbl->Next(pEnum, 1, &cd, 0) == 0) {
-                result = cd.pUnk->pVTbl->QueryInterface(cd.pUnk, &IID_IEcoLab1Events, (void**)&pIEvents);
-                if ( (result == 0) && (pIEvents != 0) ) {
-                    result = pIEvents->pVTbl->OnTimsort(pIEvents, arr, arr_size, elem_size);
-                    pIEvents->pVTbl->Release(pIEvents);
-                }
-                cd.pUnk->pVTbl->Release(cd.pUnk);
-            }
-            pEnum->pVTbl->Release(pEnum);
-        }
-    }
-    return result;
-}
-
-
-
-
 /*
  *
  * <сводка>
@@ -810,7 +805,7 @@ int16_t ECOCALLMETHOD initCEcoLab1(/*in*/ struct IEcoLab1* me, /* in */ struct I
 
     pCMe->m_pISys = (IEcoSystem1*)pIUnkSystem;
 
-    result = createCEcoLab1ConnectionPoint((IEcoUnknown*)pCMe->m_pISys, &pCMe->m_pVTblICPC, &IID_IEcoLab1Events, (IEcoConnectionPoint**)&((pCMe)->m_pISinkCP));
+    result = createCEcoLab1ConnectionPoint((IEcoUnknown*)pCMe->m_pISys, (IEcoConnectionPointContainer*)&pCMe->m_pVTblICPC, &IID_IEcoLab1Events, (IEcoConnectionPoint**)&((pCMe)->m_pISinkCP));
     if (result == 0 && pCMe->m_pISinkCP != 0) {
         result = 0;
     }
@@ -839,8 +834,8 @@ int16_t ECOCALLMETHOD CEcoLab1_IEcoConnectionPointContainer_FindConnectionPoint(
         return -1;
     }
 
-    pCMe->m_pISinkCP->m_pVTblICP->AddRef(&pCMe->m_pISinkCP->m_pVTblICP);
-    *ppCP =  &pCMe->m_pISinkCP->m_pVTblICP;
+    pCMe->m_pISinkCP->m_pVTblICP->AddRef((IEcoConnectionPoint*)&pCMe->m_pISinkCP->m_pVTblICP);
+    *ppCP = (IEcoConnectionPoint*) &pCMe->m_pISinkCP->m_pVTblICP;
 
     return 0;
 }
@@ -853,7 +848,7 @@ int16_t ECOCALLMETHOD CEcoLab1_IEcoConnectionPointContainer_EnumConnectionPoints
         return -1;
     }
 
-    result = createCEcoLab1EnumConnectionPoints((IEcoUnknown*)pCMe->m_pISys, &pCMe->m_pISinkCP->m_pVTblICP, ppEnum);
+    result = createCEcoLab1EnumConnectionPoints((IEcoUnknown*)pCMe->m_pISys, (IEcoConnectionPoint*)&pCMe->m_pISinkCP->m_pVTblICP, ppEnum);
 
     return result;
 }
