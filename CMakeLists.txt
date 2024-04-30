@@ -18,8 +18,6 @@ add_definitions(-D_CONSOLE)
 
 include_directories(Lab1/HeaderFiles)
 include_directories(Lab1/SharedFiles)
-include_directories(Lab2/HeaderFiles)
-include_directories(Lab2/SharedFiles)
 include_directories(libs/headers)
 include_directories(UnitTest/HeaderFiles)
 
@@ -63,75 +61,31 @@ add_library(
         Lab1/HeaderFiles/CEcoLab1EnumConnectionPoints.h
         Lab1/HeaderFiles/CEcoLab1EnumConnections.h
 
-        Lab1/SourceFiles/CEcoLab1ConnectionPoint.c
-        Lab1/SourceFiles/CEcoLab1EnumConnectionPoints.c
-        Lab1/SourceFiles/CEcoLab1EnumConnections.c
-
         Lab1/SharedFiles/IEcoConnectionPoint.h
         Lab1/SharedFiles/IEcoConnectionPointContainer.h
         Lab1/SharedFiles/IEcoEnumConnectionPoints.h
         Lab1/SharedFiles/IEcoEnumConnections.h
         Lab1/SharedFiles/IEcoLab1Events.h
-        ${ECO_CALC_LIB}
-)
 
-add_library(
-        1F5DF16EE1BF43B999A434ED38FE8F3A
-        SHARED
-        Lab1/SourceFiles/CEcoLab1.c
-        Lab1/SourceFiles/CEcoLab1Factory.c
-        Lab1/SharedFiles/IdEcoLab1.h
-        Lab1/SharedFiles/IEcoLab1.h
-        Lab1/HeaderFiles/CEcoLab1.h
-        Lab1/HeaderFiles/CEcoLab1Factory.h
-        ${ECO_CALC_LIB}
-)
+        Lab1/SourceFiles/CEcoLab1ConnectionPoint.c
+        Lab1/SourceFiles/CEcoLab1EnumConnectionPoints.c
+        Lab1/SourceFiles/CEcoLab1EnumConnections.c
 
-add_library(
-        1F5DF16EE1BF43B999A434ED38FE8F3B
-        SHARED
-        Lab2/SourceFiles/CEcoLab2.c
-        Lab2/SourceFiles/CEcoLab2Factory.c
-        Lab2/SharedFiles/IdEcoLab2.h
-        Lab2/HeaderFiles/CEcoLab2.h
-        Lab2/HeaderFiles/CEcoLab2Factory.h
+        ${ECO_CALC_LIB}
 )
 
 add_executable(
         Lab3
+        UnitTest/SourceFiles/EcoLab3.c
         UnitTest/HeaderFiles/CEcoLab1Sink.h
         UnitTest/SourceFiles/CEcoLab1Sink.c
-        UnitTest/SourceFiles/EcoLab3.c
 )
-
-add_executable(
-        Lab1
-        UnitTest/EcoLab1.c
-)
-
-add_executable(
-        Lab2
-        UnitTest/EcoLab2.c
-        ${ECO_CALC_LIB}
-)
-
 add_custom_command(TARGET Lab3 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${PROJECT_SOURCE_DIR}/libs/dll"
         $<TARGET_FILE_DIR:Lab3>
 )
 
-target_link_libraries(
-        Lab1
-        1F5DF16EE1BF43B999A434ED38FE8F3A
-        ${ECO_FRAMEWORK_DOT_LIB}
-)
-target_link_libraries(
-        Lab2
-        1F5DF16EE1BF43B999A434ED38FE8F3B
-        1F5DF16EE1BF43B999A434ED38FE8F3A
-        ${ECO_FRAMEWORK_DOT_LIB}
-)
 target_link_libraries(
         Lab3
         1F5DF16EE1BF43B999A434ED38FE8F3C

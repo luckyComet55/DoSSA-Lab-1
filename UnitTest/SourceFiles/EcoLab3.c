@@ -6,16 +6,10 @@
 
 #include "IdEcoLab1.h"
 
-#include "IEcoCalculatorY.h"
-#include "IEcoCalculatorX.h"
-
-#include "IdEcoLab2.h"
 #include "IEcoConnectionPointContainer.h"
 #include "IEcoConnectionPoint.h"
 #include "IEcoLab1Events.h"
 #include "CEcoLab1Sink.h"
-
-#include <stdio.h>
 
 int __cdecl compInts(const void *a_ptr, const void *b_ptr) {
     const int a = *(int *)a_ptr;
